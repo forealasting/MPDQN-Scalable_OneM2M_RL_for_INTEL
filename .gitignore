@@ -1,0 +1,28 @@
+# data 
+result/
+result1/
+result2/
+all_result/
+dqn_result/
+static_result/
+dqn_result/
+mpdqn_result/
+pdqn_result/
+mpdqn_database/
+test_code/
+old_result/
+
+# py
+
+
+
+# cache
+
+__pycache__/
+.idea/
+memory/__pycache__/
+utils/__pycache__/
+__pycache__/
+
+
+
