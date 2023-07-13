@@ -18,22 +18,22 @@ print(datetime.datetime.now())
 
 # Need modify ip if ip change
 # check cmd : sudo docker-machine ls
-ip = "192.168.99.128"  # app_mn1
-ip1 = "192.168.99.129"  # app_mn2
+ip = "192.168.99.101"  # app_mn1
+ip1 = "192.168.99.102"  # app_mn2
 
 
 # request rate r
 data_rate = 50      # if not use_tm
 use_tm = 0          # if use_tm
-tm_path = 'request/request20.txt'  # traffic path
-result_dir = "./mpdqn_result/result18/evaluate2/"
+tm_path = 'request/request22.txt'  # traffic path
+result_dir = "./mpdqn_result/result1/evaluate1/"
 
 ## initial
 request_num = []
 # timestamp    :  0, 1, 2, , ..., 61, ..., 3601
 # learning step:   0,  ..., 1,     , 120
 
-monitor_period = 60
+monitor_period = 30     # 60
 simulation_time = 3600  #
 request_n = simulation_time + monitor_period  # for last step
 # initial mn1 replica , initial mn2 replica, initial mn1 cpus, initial mn2 cpus
@@ -483,11 +483,11 @@ def post_url(url, rate, timestamp):
             results.append(executor.submit(post, url))
             time.sleep(1/rate)  # send requests every 1 / rate s
 
-        for result in as_completed(results):
-            response, response_time = result.result()
-            timestamp_list.append(timestamp)
-            response_list.append(response)
-            response_time_list.append(response_time)
+        # for result in as_completed(results):
+            # response, response_time = result.result()
+            # timestamp_list.append(timestamp)
+            # response_list.append(response)
+            # response_time_list.append(response_time)
             # print(type(response.status_code), response_time)
             # if response != "201":
             #     print(response)
@@ -549,7 +549,7 @@ def send_request(request_num, total_episodes):
 
     send_finish = 1
     store_error_count(error)
-    store_request(response_list, response_time_list, timestamp_list)
+    # store_request(response_list, response_time_list, timestamp_list)
 
 
 
