@@ -26,7 +26,7 @@ ip1 = "192.168.99.102"  # app_mn2
 data_rate = 120      # if not use_tm
 use_tm = 1          # if use_tm
 tm_path = 'request/request24.txt'  # traffic path
-result_dir = "./mpdqn_result/result18/"
+result_dir = "./mpdqn_result/result1/evaluate1/"
 
 ## initial
 request_num = []
@@ -70,7 +70,7 @@ error_rate = 0.2  # 0.2
 
 total_episodes = 8   # Training_episodes
 
-if_test = False
+if_test = True
 if if_test:
     total_episodes = 1  # Testing_episodes
 

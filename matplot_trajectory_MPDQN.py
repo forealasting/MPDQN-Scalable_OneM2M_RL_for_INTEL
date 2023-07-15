@@ -21,7 +21,7 @@ if if_evaluation:
 # tmp_str = "result2/result_cpu" # result_1016/tm1
 #tmp_dir = "pdqn_result/result2"
 # tmp_dir = "offline/database4"
-tmp_dir = "mpdqn_result/result10/evaluate/"
+tmp_dir = "mpdqn_result/result1/evaluate/"
 path1 = tmp_dir + "/app_mn1_trajectory.txt"
 path2 = tmp_dir + "/app_mn2_trajectory.txt"
 
@@ -83,8 +83,8 @@ def fig_add_Cpus(x, y, service_name):
     plt.plot(x, y, color="blue")  # color=color
     plt.title(service_name)
     #　plt.xlabel("step")
-    plt.xlabel("step")
-    plt.ylabel("Cpus")
+    plt.xlabel("step", fontsize=12)
+    plt.ylabel("Cpus", fontsize=12)
     # plt.grid(True)
 
     plt.xlim(0, total_episodes*step_per_episodes)
@@ -98,8 +98,8 @@ def fig_add_Replicas(x, y, service_name):
     plt.figure()
     plt.plot(x, y, color="green")  # color=color
     plt.title(service_name)
-    plt.xlabel("step")
-    plt.ylabel("Replicas")
+    plt.xlabel("step", fontsize=12)
+    plt.ylabel("Replicas", fontsize=12)
     # plt.grid(True)
 
     plt.xlim(0, total_episodes*step_per_episodes)
@@ -118,8 +118,8 @@ def fig_add_Cpu_utilization(x, y, y_, service_name):
 
     avg = sum(y) / len(y)
     plt.title(service_name + " Avg : " + str(avg))
-    plt.xlabel("step")
-    plt.ylabel("Cpu_utilization")
+    plt.xlabel("step", fontsize=12)
+    plt.ylabel("Cpu_utilization", fontsize=12)
     # plt.grid(True)
     plt.xlim(0, total_episodes*step_per_episodes)
     plt.ylim(0, 110)
@@ -138,8 +138,8 @@ def fig_add_response_times(x, y, y_, service_name):
     avg = sum(y) / len(y)
 
     plt.title(service_name + " Avg : " + str(avg))
-    plt.xlabel("step")
-    plt.ylabel("Response time")
+    plt.xlabel("step", fontsize=12)
+    plt.ylabel("Response time", fontsize=12)
     if service_name == "First_level_mn1":
         Rmax = Rmax_mn1
     else:
@@ -170,12 +170,12 @@ def fig_add_Resource_use(x, y, y_, service_name, dir):
     # print(len(y))
 
     avg = sum(y) / len(y)
-    avg = round(avg, 2)
+    # avg = round(avg, 2)
     print(service_name + " Avg_Resource_use", avg)
 
     plt.title(service_name + " Avg : " + str(avg))
-    plt.xlabel("step")
-    plt.ylabel("Resource_use")
+    plt.xlabel("step", fontsize=12)
+    plt.ylabel("Resource_use", fontsize=12)
     # plt.grid(True)
     plt.xlim(0, total_episodes*step_per_episodes)
     plt.ylim(0, 3)
@@ -191,8 +191,8 @@ def fig_add_reward(x, y, y_, service_name):
     plt.plot(x, y_, color="red")  # color=color # label=label
     avg = sum(y) / len(y)
     plt.title(service_name + " Avg : " + str(avg))
-    plt.xlabel("step")
-    plt.ylabel("Reward")
+    plt.xlabel("step", fontsize=12)
+    plt.ylabel("Reward", fontsize=12)
 
     # plt.grid(True)
 
