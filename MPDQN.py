@@ -25,7 +25,7 @@ ip1 = "192.168.99.102"  # app_mn2
 data_rate = 120      # if not use_tm
 use_tm = 0          # if use_tm
 tm_path = 'request/request24.txt'  # traffic path
-result_dir = "./mpdqn_result/result3/test120_1/"
+result_dir = "./mpdqn_result/result3/test120_2/"
 
 ## initial
 request_num = []
@@ -36,11 +36,18 @@ monitor_period = 30     # 60
 simulation_time = 1800  #
 request_n = simulation_time + monitor_period  # for last step
 # const
-ini_replica1, ini_cpus1, ini_replica2, ini_cpus2 = 3, 1, 1, 1
+ini_replica1, ini_cpus1, ini_replica2, ini_cpus2 = 2, 1, 1, 1
 
 ## manual action for evaluation
 ## if training : Need modify manual_action to 0
 manual_action = 1
+
+#----------
+manual_action_replica1 = 2  # replica  idx
+manual_action_cpus1 = 1
+manual_action_replica2 = 2  # replica  idx
+manual_action_cpus2 = 1
+#----------
 
 ## global variable
 change = 0   # 1 if take action / 0 if init or after taking action
@@ -275,11 +282,11 @@ class Env:
         action_cpus = action[1][action_replica][0]
         # manual_action
         if self.service_name == 'app_mn1' and manual_action:
-            action_replica = 2  # replica  idx
-            action_cpus = 1
+            action_replica = manual_action_replica1-1  # replica  idx
+            action_cpus = manual_action_cpus1
         if self.service_name == 'app_mn2' and manual_action:
-            action_replica = 2  # replica  idx
-            action_cpus = 1
+            action_replica = manual_action_replica2-1  # replica  idx
+            action_cpus = manual_action_cpus2
 
         self.replica = action_replica + 1  # 0 1 2 (index)-> 1 2 3 (replica)
         self.cpus = round(action_cpus, 2)

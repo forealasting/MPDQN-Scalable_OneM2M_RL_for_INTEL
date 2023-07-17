@@ -12,16 +12,16 @@ warnings.filterwarnings('ignore', category=MatplotlibDeprecationWarning)
 # r = '100'
 
 total_episodes = 8
-step_per_episodes = 120
+step_per_episodes = 60
 
 # evaluation
-if_evaluation = 0
+if_evaluation = 1
 if if_evaluation:
     total_episodes = 1
 # tmp_str = "result2/result_cpu" # result_1016/tm1
 #tmp_dir = "pdqn_result/result2"
 # tmp_dir = "offline/database4"
-tmp_dir = "mpdqn_result/result2/"
+tmp_dir = "mpdqn_result/result3/test120_1/"
 path1 = tmp_dir + "/app_mn1_trajectory.txt"
 path2 = tmp_dir + "/app_mn2_trajectory.txt"
 
