@@ -49,15 +49,21 @@ RFID = 0  # random number for data
 event_mn1 = threading.Event()
 event_mn2 = threading.Event()
 event_timestamp_Ccontrol = threading.Event()
+event_monitor = threading.Event()
 
-error_rate = 0.2  # 0.2/0.5
-Tmax_mn1 = 20
-Tmax_mn2 = 20
-T_upper = 50
+# Parameter
 # cost weight -------------------
-w_pref = 0.8
-w_res = 0.2
+w_pref = 0.5  # 0.8  # 0.5
+w_res = 0.5   # 0.2  # 0.5
 #  -------------------------------
+Tmax_mn1 = 20
+Tmax_mn2 = 10
+# ------------
+timeout_setting = 0.1
+T_upper = timeout_setting*1000  #  0.1s to 100 ms
+# ------------
+error_rate = 0.2  # 0.2
+
 ## Learning parameter
 # S ={k, u , c, r}
 # k (replica): 1 ~ 3                          actual value : same
@@ -189,19 +195,19 @@ class Env:
         url = self.url_list[service_name_list.index(self.service_name)]
         try:
             start = time.time()
-            response = requests.post(url, headers=headers, json=data, timeout=0.05)
+            response = requests.post(url, headers=headers, json=data, timeout=timeout_setting)
             response = response.status_code
             end = time.time()
             response_time = end - start
         except requests.exceptions.Timeout:
             response = "timeout"
-            response_time = 0.05
+            response_time = timeout_setting
 
         data1 = str(timestamp) + ' ' + str(response) + ' ' + str(response_time) + ' ' + str(self.cpus) + ' ' + str(self.replica) + '\n'
         f1.write(data1)
         f1.close()
         if str(response) != '201':
-            response_time = 0.05
+            response_time = timeout_setting
 
         return response_time
 
@@ -286,14 +292,20 @@ class Env:
 
         event.set()
 
+        event_monitor.wait()
+        # time.sleep(monitor_period-5)
+        # while True:
+        #     if ((timestamp+6)%monitor_period == 0):
+        #         break
+
         response_time_list = []
-        time.sleep(monitor_period-5)
+
+        # self.cpu_utilization = self.get_cpu_utilization()
+        self.cpu_utilization = self.get_cpu_utilization_from_data()
         for i in range(5):
             time.sleep(1)
             response_time_list.append(self.get_response_time())
 
-        # self.cpu_utilization = self.get_cpu_utilization()
-        self.cpu_utilization = self.get_cpu_utilization_from_data()
         # mean_response_time = sum(response_time_list)/len(response_time_list)
         # print(response_time_list)
         mean_response_time = statistics.mean(response_time_list)
@@ -306,37 +318,59 @@ class Env:
             t_max = Tmax_mn2
 
         Rt = mean_response_time
+        Rt = min(Rt, T_upper)
         # Cost 1
+        # B = 10
         # if Rt > t_max:
         #     c_perf = 1
         # else:
-        #     tmp_d = 10 * (Rt - t_max) / t_max
+        #     tmp_d = B * (Rt - t_max) / t_max
         #     c_perf = math.exp(tmp_d)
-        #
+
         # Cost 2
         # B = 10
         # target = t_max + 2 * math.log(0.9)
-        # c_perf = np.where(Rt <= target, np.exp(B * (Rt - t_max) / t_max),
-        #                   0.9 + ((Rt - target) / (Tupper - target)) * 0.1)
+        # c_perf = np.where(Rt <= target, np.exp(B * (Rt - t_max) / t_max), 0.9 + ((Rt - target) / (Tupper - target)) * 0.1)
+
         # Cost 3
         #
-        B = np.log(1+0.5)/((T_upper-t_max)/t_max)
-        c_perf = np.where(Rt <= t_max, 0, np.exp(B * (Rt - t_max) / t_max) - 0.5)
+        # B = np.log(1+0.5)/((T_upper-t_max)/t_max)
+        # c_perf = np.where(Rt <= t_max, 0, np.exp(B * (Rt - t_max) / t_max) - 0.5)
 
-        c_res = (self.replica*self.cpus)/3   # replica*self.cpus / Kmax
+        # Cost 4
+        # delay cost
+        B = np.log(1 + 0.5) / ((T_upper - t_max) / t_max)
+        c_delay = np.where(Rt <= t_max, 0, np.exp(B * (Rt - t_max) / t_max) - 0.5)
+
+        # cpu_utilization cost
+        relative_cpu_utilization = self.cpu_utilization / 100 / self.cpus
+        if relative_cpu_utilization > 0.8:
+            x1 = 0.8
+            x2 = 1.0
+            y1 = t_max
+            y2 = T_upper
+
+            clip_relative_cpu_utilization = min(relative_cpu_utilization, 1)
+            map_utilization = (clip_relative_cpu_utilization - x1) * ((y2 - y1) / (x2 - x1)) + t_max
+            c_utilization = np.exp(B * (map_utilization - t_max) / t_max) - 0.5
+        else:
+            c_utilization = 0
+        c_perf = max(c_delay, c_utilization)
+
+        # resource cost
+        c_res = (self.replica * self.cpus) / 3  # replica*self.cpus / Kmax
         next_state = []
-        # k, u, c # r
+        # # k, u, c # r
 
         # u = self.discretize_cpu_value(self.cpu_utilization)
         next_state.append(self.replica)
-        next_state.append(self.cpu_utilization/100/self.cpus)
+        next_state.append(relative_cpu_utilization)
         next_state.append(self.cpus)
         next_state.append(Rt)
-        # next_state.append(req)
+        # next_state.append(request_num[timestamp])
 
-        # cost function
-
-        # c_perf = 0 + ((c_perf - math.exp(-50/t_max)) / (1 - math.exp(-50/t_max))) * (1 - 0) # min max normalize
+        # normalize
+        # c_perf = 0 + ((c_perf - math.exp(-Tupper/t_max)) / (1 - math.exp(-Tupper/t_max))) * (1 - 0)  # min max normalize
         # c_res = 0 + ((c_res - (1 / 6)) / (1 - (1 / 6))) * (1 - 0)  # min max normalize
         reward_perf = w_pref * c_perf
         reward_res = w_res * c_res
@@ -507,19 +541,19 @@ class DQNAgent:
             state = state = self.env.reset()
             done = False
             losses = []
-            while True:
-                if timestamp == (monitor_period-5):
-                    response_time_list = []
-                    state[1] = (self.env.get_cpu_utilization_from_data() / 100 / self.env.cpus)
-                    for i in range(5):
-                        time.sleep(1)
-                        response_time_list.append(self.env.get_response_time())
-                    mean_response_time = statistics.mean(response_time_list)
-                    mean_response_time = mean_response_time * 1000
-                    Rt = mean_response_time
-                    state[3] = Rt
-
-                    break
+            event_monitor.wait()
+            # while True:
+            #     if timestamp == (monitor_period-5):
+            response_time_list = []
+            state[1] = (self.env.get_cpu_utilization_from_data() / 100 / self.env.cpus)
+            for i in range(5):
+                time.sleep(1)
+                response_time_list.append(self.env.get_response_time())
+            mean_response_time = statistics.mean(response_time_list)
+            mean_response_time = mean_response_time * 1000
+            Rt = mean_response_time
+            state[3] = Rt
+                    # break
             state = np.array(state, dtype=np.float32)
 
 
@@ -744,11 +778,11 @@ def post_url(url, rate):
             results.append(executor.submit(post, url))
             time.sleep(1/rate)  # send requests every 1 / rate s
 
-        for result in as_completed(results):
-            response, response_time = result.result()
-            # print(type(response.status_code), response_time)
-            # if response != "201":
-            #     print(response)
+        # for result in as_completed(results):
+        #     response, response_time = result.result()
+        #     # print(type(response.status_code), response_time)
+        #     # if response != "201":
+        #     #     print(response)
 
 # reset Environment
 def reset(r1, c1, r2, c2):
@@ -773,6 +807,10 @@ def send_request(request_num, total_episodes):
     global change, send_finish, reset_complete
     global timestamp, use_tm, RFID
     error = 0
+    # set flag to false
+    event_monitor.clear()
+    event_mn1.clear()
+    event_mn2.clear()
     for episode in range(total_episodes):
         timestamp = 0
         print("episode: ", episode+1)
@@ -787,6 +825,9 @@ def send_request(request_num, total_episodes):
             # print('timestamp: ', timestamp)
             event_mn1.clear()  # set flag to false
             event_mn2.clear()
+            if ((timestamp + 6) % monitor_period == 0):
+                event_monitor.set()
+            event_monitor.clear()
             if ((timestamp) % monitor_period) == 0 and timestamp!=0 :  # every 60s scaling
                 event_timestamp_Ccontrol.set()
                 print("wait mn1 mn2 step and service scaling ...")
@@ -831,19 +872,19 @@ def test(episodes, event, env):
     for episode in range(episodes):
         state = env.reset()
         done = False
-        while True:
-            print(timestamp)
-            if timestamp == (monitor_period-5):
-                state[1] = (env.get_cpu_utilization_from_data() / 100 / env.cpus)
-                response_time_list = []
-                for i in range(5):
-                    time.sleep(1)
-                    response_time_list.append(env.get_response_time())
-                mean_response_time = statistics.mean(response_time_list)
-                mean_response_time = mean_response_time * 1000
-                Rt = mean_response_time
-                state[3] = Rt
-                break
+        event_monitor
+        # while True:
+        #     if timestamp == (monitor_period-5):
+        state[1] = (env.get_cpu_utilization_from_data() / 100 / env.cpus)
+        response_time_list = []
+        for i in range(5):
+            time.sleep(1)
+            response_time_list.append(env.get_response_time())
+        mean_response_time = statistics.mean(response_time_list)
+        mean_response_time = mean_response_time * 1000
+        Rt = mean_response_time
+        state[3] = Rt
+                # break
         state = np.array(state, dtype=np.float32)
 
         # event_timestamp_Ccontrol.wait()

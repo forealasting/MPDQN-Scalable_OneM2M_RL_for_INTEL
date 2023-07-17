@@ -1,5 +1,4 @@
 import sys
-
 import numpy as np
 import random
 import requests
@@ -24,9 +23,9 @@ ip1 = "192.168.99.102"  # app_mn2
 
 # request rate r
 data_rate = 120      # if not use_tm
-use_tm = 1          # if use_tm
+use_tm = 0          # if use_tm
 tm_path = 'request/request24.txt'  # traffic path
-result_dir = "./mpdqn_result/result2/"
+result_dir = "./mpdqn_result/result3/test120_1/"
 
 ## initial
 request_num = []
@@ -34,15 +33,14 @@ request_num = []
 # learning step:   0,  ..., 1,     , 120
 
 monitor_period = 30     # 60
-simulation_time = 3600  #
+simulation_time = 1800  #
 request_n = simulation_time + monitor_period  # for last step
-# initial mn1 replica , initial mn2 replica, initial mn1 cpus, initial mn2 cpus
-ini_replica1, ini_cpus1, ini_replica2, ini_cpus2 = 1, 1, 1, 1
-
+# const
+ini_replica1, ini_cpus1, ini_replica2, ini_cpus2 = 3, 1, 1, 1
 
 ## manual action for evaluation
 ## if training : Need modify manual_action to 0
-manual_action = 0
+manual_action = 1
 
 ## global variable
 change = 0   # 1 if take action / 0 if init or after taking action
@@ -56,11 +54,16 @@ event_timestamp_Ccontrol = threading.Event()
 event_monitor = threading.Event()
 
 # Parameter
-w_pref = 0.7   # 0.8
-w_res = 0.3    # 0.2
+# cost weight -------------------
+w_pref = 0.5  # 0.8  # 0.5
+w_res = 0.5   # 0.2  # 0.5
+#  -------------------------------
 Tmax_mn1 = 20
 Tmax_mn2 = 10
-T_upper = 50
+# ------------
+timeout_setting = 0.1
+T_upper = timeout_setting*1000  #  0.1s to 100 ms
+# ------------
 error_rate = 0.2  # 0.2
 ## Learning parameter
 # S ={k, u , c, r} {k, u , c}
@@ -70,7 +73,7 @@ error_rate = 0.2  # 0.2
 
 total_episodes = 8   # Training_episodes
 
-if_test = False
+if_test = True
 if if_test:
     total_episodes = 1  # Testing_episodes
 
@@ -179,12 +182,12 @@ class Env:
 
     def reset(self):
         # reset replica and cpus values
-        self.replica = 1
-        self.cpus = 1
-        # if self.service_name == 'app_mn2':
-        #     self.replica = 1
-        #     self.cpus = 1
-
+        if self.service_name=="app_mn1":
+            self.replica = ini_replica1
+            self.cpus = ini_cpus1
+        else:
+            self.replica = ini_replica2
+            self.cpus = ini_cpus2
         self.state_space[0] = self.replica
         self.state_space[2] = self.cpus
 
@@ -209,19 +212,19 @@ class Env:
         url = self.url_list[service_name_list.index(self.service_name)]
         try:
             start = time.time()
-            response = requests.post(url, headers=headers, json=data, timeout=0.05)
+            response = requests.post(url, headers=headers, json=data, timeout=timeout_setting)
             response = response.status_code
             end = time.time()
             response_time = end - start
         except requests.exceptions.Timeout:
             response = "timeout"
-            response_time = 0.05
+            response_time = timeout_setting
 
         data1 = str(timestamp) + ' ' + str(response) + ' ' + str(response_time) + ' ' + str(self.cpus) + ' ' + str(self.replica) + '\n'
         f1.write(data1)
         f1.close()
         if str(response) != '201':
-            response_time = 0.05
+            response_time = timeout_setting
 
         return response_time
 
@@ -272,10 +275,10 @@ class Env:
         action_cpus = action[1][action_replica][0]
         # manual_action
         if self.service_name == 'app_mn1' and manual_action:
-            action_replica = 0  # replica  idx
+            action_replica = 2  # replica  idx
             action_cpus = 1
         if self.service_name == 'app_mn2' and manual_action:
-            action_replica = 0  # replica  idx
+            action_replica = 2  # replica  idx
             action_cpus = 1
 
         self.replica = action_replica + 1  # 0 1 2 (index)-> 1 2 3 (replica)
@@ -318,6 +321,7 @@ class Env:
             t_max = Tmax_mn2
 
         Rt = mean_response_time
+        Rt = min(Rt, T_upper)
         # Cost 1
         # B = 10
         # if Rt > t_max:
@@ -339,7 +343,6 @@ class Env:
         # Cost 4
         # delay cost
         B = np.log(1+0.5)/((T_upper-t_max)/t_max)
-        Rt = min(Rt, T_upper)
         c_delay = np.where(Rt <= t_max, 0, np.exp(B * (Rt - t_max) / t_max) - 0.5)
 
         # cpu_utilization cost
@@ -605,7 +608,7 @@ def mpdqn(total_episodes, batch_size, gamma, initial_memory_threshold,
     # init_state = [1, 1.0, 0.5, 20]  # replica / cpu utiliation / cpus / response time
     step = 1
     for episode in range(1, total_episodes+1):
-        if if_test:  # Test
+        if if_test and not manual_action:  # Test
             parts = result_dir.rsplit('/', 2)
             result_dir_ = parts[0] + '/'
             # print(result_dir_)
