@@ -15,24 +15,24 @@ print(datetime.datetime.now())
 
 
 # Need modify ip if ip change
-ip = "192.168.99.128"  # app_mn1
-ip1 = "192.168.99.129"  # app_mn2
+ip = "192.168.99.101"  # app_mn1
+ip1 = "192.168.99.102"  # app_mn2
 
 
 # request rate r
-data_rate = 50      # if not use_tm
+data_rate = 120      # if not use_tm
 use_tm = 1  # if use_tm
 
 # result path
-result_dir = "./threshold_result/result2/"
-tm_path = 'request/request20.txt'  # traffic path
+result_dir = "./threshold_result/result1/"
+tm_path = 'request/request24.txt'  # traffic path
 
 ## initial
 request_num = []
 # timestamp    :  0, 1, 2, , ..., 61, ..., 3601
 # learning step:   0,  ..., 1,     , 120
 
-monitor_period = 60
+monitor_period = 30
 simulation_time = 3600  #
 request_n = simulation_time + monitor_period  # for last step
 ini_replica1, ini_cpus1, ini_replica2, ini_cpus2 = 1, 1, 1, 1
@@ -220,7 +220,8 @@ class Env:
 
     def step(self, action, event, done):
         global timestamp, send_finish, change, simulation_time
-
+        cmd = "sudo docker-machine ssh default docker service update --replicas 0 " + self.service_name
+        returned_text = subprocess.check_output(cmd, shell=True)
         if action == '-1':
             if self.replica > 1:
                 self.replica -= 1
@@ -238,10 +239,8 @@ class Env:
 
         else:
             change = 1
-            cmd = "sudo docker-machine ssh default docker service update --replicas 0 " + self.service_name
-            cmd1 = "sudo docker-machine ssh default docker service update --replicas " + str(self.replica) + " " + self.service_name
+            cmd = "sudo docker-machine ssh default docker service update --replicas " + str(self.replica) + " " + self.service_name
             returned_text = subprocess.check_output(cmd, shell=True)
-            returned_text = subprocess.check_output(cmd1, shell=True)
 
         time.sleep(30)  # wait service start
 

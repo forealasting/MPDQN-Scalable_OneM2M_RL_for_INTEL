@@ -1,4 +1,4 @@
-# Scalable_OneM2M_RL
+# MPDQN-Scalable_OneM2M_RL
 																	
 ## Environment (The environments of the following code are all different)
 

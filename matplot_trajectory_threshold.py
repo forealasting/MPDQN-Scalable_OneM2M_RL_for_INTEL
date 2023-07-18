@@ -11,7 +11,7 @@ warnings.filterwarnings('ignore', category=MatplotlibDeprecationWarning)
 # r = '100'
 simulation_time = 3600  # 3600 s
 total_episodes = 16
-step_per_episodes = 60
+step_per_episodes = 120
 
 # evaluation
 if_evaluation = 1
@@ -27,7 +27,7 @@ path2 = tmp_dir + "/app_mn2_trajectory.txt"
 
 service = ["First_level_mn1", "Second_level_mn2", "app_mnae1", "app_mnae2"]
 Rmax_mn1 = 20
-Rmax_mn2 = 20
+Rmax_mn2 = 10
 
 # path_evaluate = tmp_dir+"/evaluate/"
 # if not os.path.exists(path_evaluate):

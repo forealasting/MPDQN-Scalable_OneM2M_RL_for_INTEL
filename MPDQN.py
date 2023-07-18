@@ -25,7 +25,7 @@ ip1 = "192.168.99.102"  # app_mn2
 data_rate = 120      # if not use_tm
 use_tm = 0          # if use_tm
 tm_path = 'request/request24.txt'  # traffic path
-result_dir = "./mpdqn_result/result3/test120_2/"
+result_dir = "./mpdqn_result/result3/test120_5/"
 
 ## initial
 request_num = []
@@ -45,7 +45,7 @@ manual_action = 1
 #----------
 manual_action_replica1 = 2  # replica  idx
 manual_action_cpus1 = 1
-manual_action_replica2 = 2  # replica  idx
+manual_action_replica2 = 1  # replica  idx
 manual_action_cpus2 = 1
 #----------
 

@@ -36,7 +36,7 @@ request_num = []
 # learning step:          0,  ..., 1,     , 120
 #
 
-monitor_period = 60
+monitor_period = 30
 simulation_time = 3600  #
 request_n = simulation_time + monitor_period  # for last step
 ini_replica1, ini_cpus1, ini_replica2, ini_cpus2 = 1, 1, 1, 1
