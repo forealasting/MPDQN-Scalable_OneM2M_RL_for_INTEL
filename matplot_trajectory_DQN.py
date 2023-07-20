@@ -27,7 +27,7 @@ path2 = tmp_dir + "/app_mn2_trajectory.txt"
 
 service = ["First_level_mn1", "Second_level_mn2", "app_mnae1", "app_mnae2"]
 Rmax_mn1 = 20
-Rmax_mn2 = 20
+Rmax_mn2 = 10
 
 # path_evaluate = tmp_dir+"/evaluate/"
 # if not os.path.exists(path_evaluate):
@@ -145,7 +145,7 @@ def fig_add_response_times(x, y, y_, service_name):
     print("Rmax violation: ", R)
 
     # plt.grid(True)
-    plt.axhline(y=Rmax_mn1, color='r', linestyle='--')
+    plt.axhline(y=Rmax, color='r', linestyle='--')
     plt.xlim(0, total_episodes*step_per_episodes)
     plt.ylim(0, 100)
     plt.savefig(tmp_dir + service_name + "_Response_time.png", dpi=300)
@@ -173,7 +173,7 @@ def fig_add_Resource_use(x, y, y_, service_name, dir):
     plt.ylabel("Resource_use", fontsize=12)
     # plt.grid(True)
     plt.xlim(0, total_episodes*step_per_episodes)
-    plt.ylim(0, 3)
+    plt.ylim(0, 4)
     plt.savefig(dir + service_name + "_Resource_use.png", dpi=300)
     plt.tight_layout()
     plt.show()

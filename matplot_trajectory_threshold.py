@@ -21,7 +21,7 @@ if if_evaluation:
 # tmp_str = "result2/result_cpu" # result_1016/tm1
 # tmp_dir = "dqn_result/result1/evaluate/"
 # tmp_dir = "dqn_result/result2/"
-tmp_dir = "threshold_result/result2/"
+tmp_dir = "threshold_result/result8/"
 path1 = tmp_dir + "/app_mn1_trajectory.txt"
 path2 = tmp_dir + "/app_mn2_trajectory.txt"
 
@@ -142,7 +142,7 @@ def fig_add_response_times(x, y, y_, service_name):
     print("Rmax violation: ", R)
 
     #plt.grid(True)
-    plt.axhline(y=Rmax_mn1, color='r', linestyle='--')
+    plt.axhline(y=Rmax, color='r', linestyle='--')
     plt.xlim(0, total_episodes*step_per_episodes)
     plt.ylim(0, 100)
     plt.savefig(tmp_dir + service_name + "_Response_time.png", dpi=300)
@@ -169,13 +169,14 @@ def fig_add_Resource_use(x, y, y_, service_name, dir):
     plt.ylabel("Resource_use")
     #plt.grid(True)
     plt.xlim(0, total_episodes*step_per_episodes)
-    plt.ylim(0, 3)
+    plt.ylim(0, 4)
     plt.savefig(dir + service_name + "_Resource_use.png", dpi=300)
     plt.tight_layout()
     plt.show()
 
 def fig_add_reward(x, y, y_, service_name):
-    x = x[:-1]
+    if if_evaluation:
+        x = x[:-1]
     plt.figure()
     plt.plot(x, y, color="red", alpha=0.2)  # color=color # label=label
     plt.plot(x, y_, color="red")  # color=color # label=label
@@ -183,11 +184,10 @@ def fig_add_reward(x, y, y_, service_name):
     plt.title(service_name + " Avg : " + str(avg))
     plt.xlabel("step")
     plt.ylabel("Reward")
-
     #plt.grid(True)
 
     plt.xlim(0, total_episodes*step_per_episodes)
-    plt.ylim(-0.6, 0)
+    plt.ylim(-1, 0)
     plt.savefig(tmp_dir + service_name + "_cost.png", dpi=300)
     plt.tight_layout()
     plt.show()
@@ -224,7 +224,7 @@ def parse_episods_data(episods_data, service_name):
             response_times.append(parsed_line[1][3])
             reward.append(parsed_line[3])  # cost = -reward
             tmp_step += 1
-            if tmp_step == 60:
+            if tmp_step == step_per_episodes and if_evaluation:
                 step.append(tmp_step)
                 replicas.append(parsed_line[6][0])
                 cpu_utilization.append(parsed_line[6][1] * 100)
@@ -244,7 +244,7 @@ def parse_episods_data(episods_data, service_name):
     fig_add_response_times(step, response_times, response_times_, service_name)
     fig_add_Cpu_utilization(step, cpu_utilization, cpu_utilization_, service_name)
     fig_add_Resource_use(step, resource_use, resource_use_, service_name, tmp_dir)
-    # fig_add_reward(step, reward, reward_, service_name)
+    fig_add_reward(step, reward, reward_, service_name)
 
 
 tmp_count = 0

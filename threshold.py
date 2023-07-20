@@ -24,7 +24,7 @@ data_rate = 120      # if not use_tm
 use_tm = 1  # if use_tm
 
 # result path
-result_dir = "./threshold_result/result1/"
+result_dir = "./threshold_result/result8/"
 tm_path = 'request/request24.txt'  # traffic path
 
 ## initial
@@ -47,6 +47,7 @@ event_mn1 = threading.Event()
 event_mn2 = threading.Event()
 event_timestamp_Ccontorl = threading.Event()
 event_monitor = threading.Event()
+step_period = 1
 
 # Parameter
 # cost weight -------------------
@@ -56,7 +57,7 @@ w_res = 0.5   # 0.2  # 0.5
 Tmax_mn1 = 20
 Tmax_mn2 = 10
 # ------------
-timeout_setting = 0.1
+timeout_setting = 0.05
 T_upper = timeout_setting*1000  #  0.1s to 100 ms
 # ------------
 error_rate = 0.2  # 0.2
@@ -130,7 +131,8 @@ class Env:
         self.state_space = [1, 1.0, 1, 20]
         self.n_state = len(self.state_space)
         self.n_actions = len(self.action_space)
-
+        self.step_cpu_utilization = []
+        self.step_rt = []
         # Need modify ip if container name change
         self.url_list = ["http://" + ip + ":666/~/mn-cse/mn-name/AE1/RFID_Container_for_stage4",
                                     "http://" + ip1 + ":777/~/mn-cse/mn-name/AE2/Control_Command_Container",
@@ -210,6 +212,7 @@ class Env:
                 cpu.append(float(s[1]))
 
             last_avg_cpu = statistics.mean(cpu[-5:])
+            # last_avg_cpu = statistics.median(cpu[-5:])
             f.close()
         except:
             print('cant open')
@@ -248,16 +251,17 @@ class Env:
         event_monitor.wait()
         # time.sleep(monitor_period-6)  # wait for monitor ture value
 
-        response_time_list = []
+        # self.cpu_utilization = self.get_cpu_utilization()
+        self.cpu_utilization = self.get_cpu_utilization_from_data()
+        relative_cpu_utilization = self.cpu_utilization / 100 / self.cpus
 
+        response_time_list = []
         for i in range(5):
             time.sleep(1)
             response_time_list.append(self.get_response_time())
-        mean_response_time = statistics.mean(response_time_list)
-        mean_response_time = mean_response_time*1000  # 0.05s -> 50ms
-
-        # self.cpu_utilization = self.get_cpu_utilization()
-        self.cpu_utilization = self.get_cpu_utilization_from_data()
+        avg_response_time = statistics.mean(response_time_list)
+        # avg_response_time = statistics.median(response_time_list)
+        avg_response_time = avg_response_time*1000  # 0.05s -> 50ms
 
         t_max = 0
         if self.service_name == "app_mn1":
@@ -265,8 +269,17 @@ class Env:
         elif self.service_name == "app_mn2":
             t_max = Tmax_mn2
 
-        Rt = mean_response_time
+        Rt = avg_response_time
         Rt = min(Rt, T_upper)
+
+        self.step_cpu_utilization.append(relative_cpu_utilization)
+        self.step_rt.append(Rt)
+        if len(self.step_cpu_utilization) == 4:
+            relative_cpu_utilization = statistics.mean(self.step_cpu_utilization)
+            Rt = statistics.mean(self.step_rt)
+            Rt = min(Rt, T_upper)
+            self.step_cpu_utilization = []
+            self.step_rt = []
         # Cost 1
         # B = 10
         # if Rt > t_max:
@@ -291,7 +304,7 @@ class Env:
         c_delay = np.where(Rt <= t_max, 0, np.exp(B * (Rt - t_max) / t_max) - 0.5)
 
         # cpu_utilization cost
-        relative_cpu_utilization = self.cpu_utilization / 100 / self.cpus
+
         if relative_cpu_utilization > 0.8:
             x1 = 0.8
             x2 = 1.0
@@ -485,6 +498,8 @@ def agent_threshold(event, service_name):
 
     env = Env(service_name)
     step = 1
+    tmp_step = 1
+
     state = env.reset()
     event_monitor.wait()
     # while True:
@@ -496,13 +511,15 @@ def agent_threshold(event, service_name):
     for i in range(5):
         time.sleep(1)
         response_time_list.append(env.get_response_time())
-    mean_response_time = statistics.mean(response_time_list)
-    mean_response_time = mean_response_time * 1000
-    Rt = mean_response_time
+    # avg_response_time = statistics.median(response_time_list)
+    avg_response_time = statistics.mean(response_time_list)
+    avg_response_time = avg_response_time * 1000
+    Rt = avg_response_time
     state[3] = Rt
+    env.step_cpu_utilization.append(state[1])
+    env.step_rt.append(state[3])
             # break
     print("service name:", env.service_name, "initial state:", state)
-
     # action: +1 scale out -1 scale in
     while True:
         if timestamp == 0:
@@ -515,21 +532,31 @@ def agent_threshold(event, service_name):
                 done = False
             # get state
             cpu_utilization = state[1]
-            if cpu_utilization >= 0.8:
-                action = "+1"
-            elif cpu_utilization <= 0.2:
-                action = "-1"
+
+
+            if (tmp_step%step_period) == 0:
+                if cpu_utilization >= 0.8:
+                    action = "+1"
+                elif cpu_utilization <= 0.2:
+                    action = "-1"
+                else:
+                    action = "0"
+                next_state, reward, reward_perf, reward_res = env.step(action, event, done)
+                print("service name:", env.service_name, "action: ", action, " step: ", step, " next_state: ",
+                      next_state, " reward: ", reward, " done: ", done, tmp_step)
+                store_trajectory(env.service_name, step, state, action, reward, reward_perf, reward_res, next_state,
+                                 done)
+
+                state = next_state
+                step += 1  # do real action
             else:
                 action = "0"
+                next_state, reward, reward_perf, reward_res = env.step(action, event, done)
+                print("service name:", env.service_name, "action: ", action, " step: ", step, " next_state: ",
+                                         next_state, " reward: ", reward, " done: ", done)
+                state = next_state
+            tmp_step += 1
 
-            next_state, reward, reward_perf, reward_res = env.step(action, event, done)
-            print("service name:", env.service_name, "action: ", action, " step: ", step, " next_state: ",
-                                     next_state, " reward: ", reward, " done: ", done)
-            store_trajectory(env.service_name, step, state, action, reward, reward_perf, reward_res, next_state, done)
-
-            state = next_state
-            step += 1
-            # event_timestamp_Ccontorl.clear()
         if done:
             break
 

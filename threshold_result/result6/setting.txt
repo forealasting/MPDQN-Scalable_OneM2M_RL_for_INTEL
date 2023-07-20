@@ -1,0 +1,10 @@
+date: 2023-07-20 01:47:34.875691
+data_rate: 120
+use_tm: 1
+Tmax_mn1: 20
+Tmax_mn2: 10
+simulation_time: 3600
+w_pref: 0.5
+w_res: 0.5
+step_period = 4
+monitor median

@@ -54,8 +54,8 @@ fig, ax = plt.subplots()
 for i in range(len(k_values)):
     ax.plot(c_values, y[i], label=f'k={k_values[i]}')
 
-ax.set_xlabel('c_res')
-ax.set_ylabel('y')
+ax.set_xlabel('cpus')
+ax.set_ylabel('c_res')
 ax.legend()
 plt.grid(True)
 plt.savefig("c_res_function.png", dpi=300)

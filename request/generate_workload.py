@@ -1,6 +1,6 @@
 import numpy as np
 import math
-path1 = "request24.txt"
+path1 = "request23.txt"
 
 f1 = open(path1, 'a')
 
@@ -37,10 +37,10 @@ f1 = open(path1, 'a')
 def generate_data_rate_pattern(total_time):
     data_rate_pattern = []
     timestamp = 0
-    data_rate = 40  # initial
-    max_data_rate = 140
-    min_data_rate = 40
-    delta_rate = 25
+    data_rate = 20  # initial
+    max_data_rate = 100
+    min_data_rate = 20
+    delta_rate = 20
     increasing = True
 
     while timestamp < total_time:

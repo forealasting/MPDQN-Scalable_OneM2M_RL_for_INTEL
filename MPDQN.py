@@ -25,7 +25,7 @@ ip1 = "192.168.99.102"  # app_mn2
 data_rate = 120      # if not use_tm
 use_tm = 0          # if use_tm
 tm_path = 'request/request24.txt'  # traffic path
-result_dir = "./mpdqn_result/result3/test120_5/"
+result_dir = "./mpdqn_result/result_static_test1/test120_10_timeout50/"
 
 ## initial
 request_num = []
@@ -36,14 +36,14 @@ monitor_period = 30     # 60
 simulation_time = 1800  #
 request_n = simulation_time + monitor_period  # for last step
 # const
-ini_replica1, ini_cpus1, ini_replica2, ini_cpus2 = 2, 1, 1, 1
+ini_replica1, ini_cpus1, ini_replica2, ini_cpus2 = 3, 1, 1, 1
 
 ## manual action for evaluation
 ## if training : Need modify manual_action to 0
 manual_action = 1
 
 #----------
-manual_action_replica1 = 2  # replica  idx
+manual_action_replica1 = 3  # replica  idx
 manual_action_cpus1 = 1
 manual_action_replica2 = 1  # replica  idx
 manual_action_cpus2 = 1
@@ -68,7 +68,7 @@ w_res = 0.5   # 0.2  # 0.5
 Tmax_mn1 = 20
 Tmax_mn2 = 10
 # ------------
-timeout_setting = 0.1
+timeout_setting = 0.05          #  0.1 / 0.05
 T_upper = timeout_setting*1000  #  0.1s to 100 ms
 # ------------
 error_rate = 0.2  # 0.2
@@ -686,7 +686,7 @@ def mpdqn(total_episodes, batch_size, gamma, initial_memory_threshold,
                     agent.epsilon_decay()
 
                 step += 1
-                # event_timestamp_Ccontrol.clear()
+
                 if done:
                     break
     if not if_test:
