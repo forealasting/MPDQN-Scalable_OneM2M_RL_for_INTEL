@@ -11,6 +11,9 @@ pdqn_result/
 mpdqn_database/
 test_code/
 old_result/
+threshold_result/
+
+
 
 # py
 

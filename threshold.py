@@ -93,6 +93,7 @@ settings = {
     'simulation_time': simulation_time,
     'w_pref': w_pref,
     'w_res': w_res,
+    'step_period' : step_period,
 }
 
 

@@ -17,33 +17,37 @@ print(datetime.datetime.now())
 
 # Need modify ip if ip change
 # check cmd : sudo docker-machine ls
-ip = "192.168.99.101"  # app_mn1
-ip1 = "192.168.99.102"  # app_mn2
+ip = "192.168.99.103"  # app_mn1
+ip1 = "192.168.99.104"  # app_mn2
 
 
 # request rate r
 data_rate = 120      # if not use_tm
-use_tm = 0          # if use_tm
+use_tm = 0           # if use_tm
 tm_path = 'request/request24.txt'  # traffic path
-result_dir = "./mpdqn_result/result_static_test1/test120_10_timeout50/"
+result_dir = "./mpdqn_result/result_manager_cpu4_memory_2G/"
 
 ## initial
 request_num = []
 # timestamp    :  0, 1, 2, , ..., 61, ..., 3601
 # learning step:   0,  ..., 1,     , 120
+if_test = False
+total_episodes = 1   # Training_episodes
+if if_test:
+    total_episodes = 1  # Testing_episodes
 
 monitor_period = 30     # 60
-simulation_time = 1800  #
+simulation_time = 3600  #
 request_n = simulation_time + monitor_period  # for last step
 # const
-ini_replica1, ini_cpus1, ini_replica2, ini_cpus2 = 3, 1, 1, 1
+ini_replica1, ini_cpus1, ini_replica2, ini_cpus2 = 1, 1, 1, 1
 
 ## manual action for evaluation
 ## if training : Need modify manual_action to 0
-manual_action = 1
+manual_action = 0
 
 #----------
-manual_action_replica1 = 3  # replica  idx
+manual_action_replica1 = 1  # replica  idx
 manual_action_cpus1 = 1
 manual_action_replica2 = 1  # replica  idx
 manual_action_cpus2 = 1
@@ -78,26 +82,21 @@ error_rate = 0.2  # 0.2
 # u (cpu utilization) : 0.0, 0.1 0.2 ...1     actual value : 0 ~ 100
 # c (used cpus) : 0.1 0.2 ... 1               actual value : same
 
-total_episodes = 8   # Training_episodes
-
-if_test = True
-if if_test:
-    total_episodes = 1  # Testing_episodes
 
 multipass = True  # False : PDQN  / Ture: MPDQN
 
 # totoal step = episode per step * episode; ex : 60 * 16 = 960
 # Exploration parameters
-epsilon_steps = 840  #
+epsilon_steps = 420  #
 epsilon_initial = 1   #
 epsilon_final = 0.01  # 0.01
 
 # Learning rate
-learning_rate_actor_param = 0.0001  # actor # 0.001
-learning_rate_actor = 0.001         # critic # 0.01
+learning_rate_actor_param = 0.001  # actor # 0.001
+learning_rate_actor = 0.01         # critic # 0.01
 # Target Learning rate
-tau_actor_param = 0.001    # actor  # 0.01
-tau_actor = 0.01           # critic # 0.1
+tau_actor_param = 0.01    # actor  # 0.01
+tau_actor = 0.1           # critic # 0.1
 
 gamma = 0.9               # Discounting rate
 replay_memory_size = 960  # Replay memory
