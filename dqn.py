@@ -57,7 +57,7 @@ w_pref = 0.5  # 0.8  # 0.5
 w_res = 0.5   # 0.2  # 0.5
 #  -------------------------------
 Tmax_mn1 = 20
-Tmax_mn2 = 10
+Tmax_mn2 = 5
 # ------------
 timeout_setting = 0.1
 T_upper = timeout_setting*1000  #  0.1s to 100 ms
@@ -135,7 +135,7 @@ sensors = ["RFID_Container_for_stage0", "RFID_Container_for_stage1", "Liquid_Lev
          "Color_Container", "RFID_Container_for_stage3", "Contrast_Data_Container", "RFID_Container_for_stage4"]
 
 if use_tm:
-    f = open(tm_path)
+    f = open(tm_path)state
 
     for line in f:
         if len(request_num) < request_n:
@@ -146,7 +146,6 @@ else:
 
 
 print("request_num:: ", len(request_num), "simulation_time:: ", simulation_time)
-
 
 class Env:
 

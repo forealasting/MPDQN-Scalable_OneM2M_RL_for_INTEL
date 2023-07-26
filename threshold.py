@@ -15,8 +15,8 @@ print(datetime.datetime.now())
 
 
 # Need modify ip if ip change
-ip = "192.168.99.101"  # app_mn1
-ip1 = "192.168.99.102"  # app_mn2
+ip = "192.168.99.104"  # app_mn1
+ip1 = "192.168.99.105"  # app_mn2
 
 
 # request rate r
@@ -24,7 +24,7 @@ data_rate = 120      # if not use_tm
 use_tm = 1  # if use_tm
 
 # result path
-result_dir = "./threshold_result/result8/"
+result_dir = "./threshold_result/result10/"
 tm_path = 'request/request24.txt'  # traffic path
 
 ## initial
@@ -47,7 +47,7 @@ event_mn1 = threading.Event()
 event_mn2 = threading.Event()
 event_timestamp_Ccontorl = threading.Event()
 event_monitor = threading.Event()
-step_period = 1
+step_period = 4
 
 # Parameter
 # cost weight -------------------
@@ -87,7 +87,7 @@ path = result_dir + "setting.txt"
 settings = {
     'date': datetime.datetime.now(),
     'data_rate': data_rate,
-    'use_tm': use_tm,
+    'use_tm': str(use_tm) + " " + str(tm_path),
     'Tmax_mn1': Tmax_mn1,
     'Tmax_mn2': Tmax_mn2,
     'simulation_time': simulation_time,

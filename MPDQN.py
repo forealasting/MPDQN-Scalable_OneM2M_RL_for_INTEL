@@ -17,22 +17,22 @@ print(datetime.datetime.now())
 
 # Need modify ip if ip change
 # check cmd : sudo docker-machine ls
-ip = "192.168.99.103"  # app_mn1
-ip1 = "192.168.99.104"  # app_mn2
+ip = "192.168.99.104"  # app_mn1
+ip1 = "192.168.99.105"  # app_mn2
 
 
 # request rate r
 data_rate = 120      # if not use_tm
-use_tm = 0           # if use_tm
-tm_path = 'request/request24.txt'  # traffic path
-result_dir = "./mpdqn_result/result_manager_cpu4_memory_2G/"
+use_tm = 1           # if use_tm
+tm_path = 'request/request25.txt'  # traffic path
+result_dir = "./mpdqn_result/result6/"
 
 ## initial
 request_num = []
 # timestamp    :  0, 1, 2, , ..., 61, ..., 3601
 # learning step:   0,  ..., 1,     , 120
-if_test = False
-total_episodes = 1   # Training_episodes
+if_test = True
+total_episodes = 8   # Training_episodes
 if if_test:
     total_episodes = 1  # Testing_episodes
 
@@ -63,14 +63,16 @@ event_mn1 = threading.Event()
 event_mn2 = threading.Event()
 event_timestamp_Ccontrol = threading.Event()
 event_monitor = threading.Event()
+step_period = 4
 
 # Parameter
 # cost weight -------------------
 w_pref = 0.5  # 0.8  # 0.5
 w_res = 0.5   # 0.2  # 0.5
 #  -------------------------------
+# Tmax setting : Need modifying for different machine
 Tmax_mn1 = 20
-Tmax_mn2 = 10
+Tmax_mn2 = 5
 # ------------
 timeout_setting = 0.05          #  0.1 / 0.05
 T_upper = timeout_setting*1000  #  0.1s to 100 ms
@@ -87,7 +89,7 @@ multipass = True  # False : PDQN  / Ture: MPDQN
 
 # totoal step = episode per step * episode; ex : 60 * 16 = 960
 # Exploration parameters
-epsilon_steps = 420  #
+epsilon_steps = 210  # 30 * 8
 epsilon_initial = 1   #
 epsilon_final = 0.01  # 0.01
 
@@ -125,7 +127,7 @@ path = result_dir + "setting.txt"
 settings = {
     'date': datetime.datetime.now(),
     'data_rate': data_rate,
-    'use_tm': use_tm,
+    'use_tm': str(use_tm) + " " + str(tm_path),
     'Tmax_mn1': Tmax_mn1,
     'Tmax_mn2': Tmax_mn2,
     'simulation_time': simulation_time,
@@ -143,6 +145,7 @@ settings = {
     'if_test': if_test,
     'w_pref': w_pref,
     'w_res': w_res,
+    'step_period' : step_period,
 }
 
 # Write settings to file
@@ -177,9 +180,11 @@ class Env:
         self.replica = 1
         self.cpu_utilization = 0.0
         self.action_space = ['1', '1', '1']
-        self.state_space = [1, 0, 0.5, 20]
-        self.n_state = len(self.state_space)
+        self.state = [1, 0, 0.5, 20]
+        self.n_state = len(self.state)
         self.n_actions = len(self.action_space)
+        self.step_cpu_utilization = []
+        self.step_rt = []
 
         # four service url
         self.url_list = ["http://" + ip + ":666/~/mn-cse/mn-name/AE1/RFID_Container_for_stage4",
@@ -194,10 +199,10 @@ class Env:
         else:
             self.replica = ini_replica2
             self.cpus = ini_cpus2
-        self.state_space[0] = self.replica
-        self.state_space[2] = self.cpus
+        self.state[0] = self.replica
+        self.state[2] = self.cpus
 
-        return self.state_space
+        return self.state
 
     def get_response_time(self):
 
@@ -277,8 +282,6 @@ class Env:
     def step(self, action, event, done):
         global timestamp, send_finish, change
 
-        action_replica = action[0]
-        action_cpus = action[1][action_replica][0]
         # manual_action
         if self.service_name == 'app_mn1' and manual_action:
             action_replica = manual_action_replica1-1  # replica  idx
@@ -286,9 +289,11 @@ class Env:
         if self.service_name == 'app_mn2' and manual_action:
             action_replica = manual_action_replica2-1  # replica  idx
             action_cpus = manual_action_cpus2
-
-        self.replica = action_replica + 1  # 0 1 2 (index)-> 1 2 3 (replica)
-        self.cpus = round(action_cpus, 2)
+        if action != '0':
+            action_replica = action[0]
+            action_cpus = action[1][action_replica][0]
+            self.replica = action_replica + 1  # 0 1 2 (index)-> 1 2 3 (replica)
+            self.cpus = round(action_cpus, 2)
         # print(self.replica, self.cpus)
         change = 1
 
@@ -313,6 +318,7 @@ class Env:
         response_time_list = []
         # self.cpu_utilization = self.get_cpu_utilization()
         self.cpu_utilization = self.get_cpu_utilization_from_data()
+        relative_cpu_utilization = self.cpu_utilization / 100 / self.cpus
 
         for i in range(5):
             response_time_list.append(self.get_response_time())
@@ -328,6 +334,15 @@ class Env:
 
         Rt = mean_response_time
         Rt = min(Rt, T_upper)
+
+        self.step_cpu_utilization.append(relative_cpu_utilization)
+        self.step_rt.append(Rt)
+        if len(self.step_cpu_utilization) == 4:
+            relative_cpu_utilization = statistics.mean(self.step_cpu_utilization)
+            Rt = statistics.mean(self.step_rt)
+            Rt = min(Rt, T_upper)
+            self.step_cpu_utilization = []
+            self.step_rt = []
         # Cost 1
         # B = 10
         # if Rt > t_max:
@@ -352,7 +367,7 @@ class Env:
         c_delay = np.where(Rt <= t_max, 0, np.exp(B * (Rt - t_max) / t_max) - 0.5)
 
         # cpu_utilization cost
-        relative_cpu_utilization = self.cpu_utilization/100/self.cpus
+
         if relative_cpu_utilization > 0.8:
             x1 = 0.8
             x2 = 1.0
@@ -377,7 +392,7 @@ class Env:
         next_state.append(self.cpus)
         next_state.append(Rt)
         # next_state.append(request_num[timestamp])
-
+        self.state = next_state
         # normalize
         # c_perf = 0 + ((c_perf - math.exp(-Tupper/t_max)) / (1 - math.exp(-Tupper/t_max))) * (1 - 0)  # min max normalize
         # c_res = 0 + ((c_res - (1 / 6)) / (1 - (1 / 6))) * (1 - 0)  # min max normalize
@@ -613,6 +628,7 @@ def mpdqn(total_episodes, batch_size, gamma, initial_memory_threshold,
 
     # init_state = [1, 1.0, 0.5, 20]  # replica / cpu utiliation / cpus / response time
     step = 1
+    tmp_step = 1
     for episode in range(1, total_episodes+1):
         if if_test and not manual_action:  # Test
             parts = result_dir.rsplit('/', 2)
@@ -642,12 +658,13 @@ def mpdqn(total_episodes, batch_size, gamma, initial_memory_threshold,
         Rt = mean_response_time
         state[3] = Rt
                 # break
+        env.step_cpu_utilization.append(state[1])
+        env.step_rt.append(state[3])
         state = np.array(state, dtype=np.float32)
         print("service name:", env.service_name, "initial state:", state)
         print("service name:", env.service_name, " episode:", episode)
-        act, act_param, all_action_parameters, if_epsilon = agent.act(state)
-
-        action = pad_action(act, act_param)
+        # act, act_param, all_action_parameters, if_epsilon = agent.act(state)
+        # action = pad_action(act, act_param)
 
         while True:
             if timestamp == 0:
@@ -659,32 +676,45 @@ def mpdqn(total_episodes, batch_size, gamma, initial_memory_threshold,
                     done = True
                 else:
                     done = False
+                if (tmp_step % step_period) == 0:
+                    act, act_param, all_action_parameters, if_epsilon = agent.act(np.array(env.state, dtype=np.float32))
 
-                next_state, reward, reward_perf, reward_res = env.step(action, event, done)
-                # print("service name:", env.service_name, "action: ", action[0] + 1, round(action[1][action[0]][0], 2))
+                    action = pad_action(act, act_param)
 
-                # Covert np.float32
-                next_state = np.array(next_state, dtype=np.float32)
-                next_act, next_act_param, next_all_action_parameters, if_epsilon = agent.act(next_state)
+                    next_state, reward, reward_perf, reward_res = env.step(action, event, done)
 
-                print("service name:", env.service_name, "action: ", act + 1, act_param, all_action_parameters, " step: ", step,
-                      " next_state: ",
-                      next_state, " reward: ", reward, " done: ", done, "epsilon", agent.epsilon)
-                store_trajectory(env.service_name, step, state, act + 1, all_action_parameters, reward, reward_perf,
-                                 reward_res,
-                                 next_state, done, if_epsilon)
-                next_action = pad_action(next_act, next_act_param)
-                if not if_test:
-                    agent.step(state, (act, all_action_parameters), reward, next_state,
-                               (next_act, next_all_action_parameters), done)
-                act, act_param, all_action_parameters = next_act, next_act_param, next_all_action_parameters
 
-                action = next_action
-                state = next_state
-                if not if_test:
-                    agent.epsilon_decay()
+                    # Covert np.float32
+                    next_state = np.array(next_state, dtype=np.float32)
+                    # next_act, next_act_param, next_all_action_parameters, if_epsilon = agent.act(next_state)
 
-                step += 1
+                    print("service name:", env.service_name, "action: ", act + 1, act_param, all_action_parameters, " step: ", step,
+                          " next_state: ",
+                          next_state, " reward: ", reward, " done: ", done, "epsilon", agent.epsilon)
+                    store_trajectory(env.service_name, step, state, act + 1, all_action_parameters, reward, reward_perf,
+                                     reward_res,
+                                     next_state, done, if_epsilon)
+                    # next_action = pad_action(next_act, next_act_param)
+                    if not if_test:
+                        agent.step(state, (act, all_action_parameters), reward, next_state,
+                                   (act, all_action_parameters), done)
+                    # act, act_param, all_action_parameters = next_act, next_act_param, next_all_action_parameters
+
+                    # action = next_action
+                    state = next_state
+                    if not if_test:
+                        agent.epsilon_decay()
+                    step += 1
+
+                else:
+                    action = "0"
+                    next_state, reward, reward_perf, reward_res = env.step(action, event, done)
+                    print("service name:", env.service_name, "action: ", action, " step: ", step, " next_state: ",
+                          next_state, " reward: ", reward, " done: ", done)
+                    state = next_state
+
+                tmp_step += 1
+
 
                 if done:
                     break
