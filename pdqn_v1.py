@@ -373,19 +373,15 @@ class PDQNAgent:
         self.store_actor_loss(Q_loss)
 
 
-
     def save_models(self, prefix):
-
         torch.save(self.actor.state_dict(), prefix + '_actor.pt')
         torch.save(self.actor_param.state_dict(), prefix + '_actor_param.pt')
         print('Models saved successfully')
 
     def load_models(self, prefix):
-
         self.actor.load_state_dict(torch.load(prefix + '_actor.pt'))
         self.actor_param.load_state_dict(torch.load(prefix + '_actor_param.pt'))
         print('Models loaded successfully')
-
 
     def store_actor_loss(self, loss):
         # Write the string to a text file

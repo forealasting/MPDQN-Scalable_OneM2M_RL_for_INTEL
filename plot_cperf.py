@@ -24,7 +24,7 @@ import math
 
 
 # c_delay---------------------
-t_max = 20
+t_max = 5
 T_upper = 50
 B = np.log(1+0.5)/((T_upper-t_max)/t_max)
 

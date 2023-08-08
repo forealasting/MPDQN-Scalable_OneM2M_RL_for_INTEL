@@ -15,13 +15,13 @@ total_episodes = 8
 step_per_episodes = 30
 
 # evaluation
-if_evaluation = 0
+if_evaluation = 1
 if if_evaluation:
     total_episodes = 1
 # tmp_str = "result2/result_cpu" # result_1016/tm1
 #tmp_dir = "pdqn_result/result2"
 # tmp_dir = "offline/database4"
-tmp_dir = "mpdqn_result/result5/"
+tmp_dir = "mpdqn_result/result8/evaluate2/"
 path1 = tmp_dir + "/app_mn1_trajectory.txt"
 path2 = tmp_dir + "/app_mn2_trajectory.txt"
 
@@ -43,25 +43,13 @@ def parse(p):
         for line in data:
             tmp += 1
             # parse data
-            # match = re.match(
-            #     r"(\d+) \[(.+)\] (\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) \[(.+)\] (\w+)",
-            #     line)  # for PDQN/MPDQN
             match = re.match(
                 r"(\d+) \[(.+)\] (\d+) \[(.+)\] ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) \[(.+)\] (\w+)", line)
 
             # assert False
-
             if match != None:
                 # Convert the parsing result to the corresponding Python object
-                # line_data = [int(match.group(1)), json.loads("[" + match.group(2) + "]"), int(match.group(3)),
-                #              float(match.group(4)), float(match.group(5)), float(match.group(6)),
-                #              json.loads("[" + match.group(7) + "]"), match.group(8) == "True"]  # for DQN/Qlearning
-                # line_data = [int(match.group(1)), json.loads("[" + match.group(2) + "]"), int(match.group(3)),
-                #              float(match.group(4)), json.loads("[" + match.group(5) + "]"), match.group(6) == "True"]
 
-                # line_data = [int(match.group(1)), json.loads("[" + match.group(2) + "]"), int(match.group(3)),
-                #              float(match.group(4)), float(match.group(5)), float(match.group(6)), float(match.group(7)),
-                #              json.loads("[" + match.group(8) + "]"), match.group(9) == "True"]  # for PDQN/MPDQN
                 line_data = [int(match.group(1)), json.loads("[" + match.group(2) + "]"), int(match.group(3)),
                              json.loads("[" + match.group(4) + "]"), float(match.group(5)), float(match.group(6)),
                              float(match.group(7)), json.loads("[" + match.group(8) + "]"), match.group(9) == "True"]

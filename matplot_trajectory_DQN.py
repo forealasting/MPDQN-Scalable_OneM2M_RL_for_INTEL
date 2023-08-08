@@ -45,9 +45,6 @@ def parse(p):
             tmp += 1
             # parse data
             match = re.match(r"(\d+) \[(.+)\] (\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) \[(.+)\] (\w+)", line)  # for DQN/Qlearning
-            # match = re.match(
-            #     r"(\d+) \[(.+)\] (\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) \[(.+)\] (\w+)",
-            #     line)  # for PDQN/MPDQN
 
             # assert False
             if match != None:
@@ -56,9 +53,6 @@ def parse(p):
                              float(match.group(4)), float(match.group(5)), float(match.group(6)),
                              json.loads("[" + match.group(7) + "]"), match.group(8) == "True"]  # for DQN/Qlearning
 
-                # line_data = [int(match.group(1)), json.loads("[" + match.group(2) + "]"), int(match.group(3)),
-                #              float(match.group(4)), float(match.group(5)), float(match.group(6)), float(match.group(7)),
-                #              json.loads("[" + match.group(8) + "]"), match.group(9) == "True"]  # for PDQN/MPDQN
 
                 parsed_line.append(line_data)
                 # 9 8

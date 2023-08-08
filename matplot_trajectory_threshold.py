@@ -44,9 +44,7 @@ def parse(p):
         for line in data:
             # parse data
             match = re.match(r"(\d+) \[(.+)\] (\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) \[(.+)\] (\w+)", line)  # for DQN/Qlearning
-            # match = re.match(
-            #     r"(\d+) \[(.+)\] (\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) \[(.+)\] (\w+)",
-            #     line)  # for PDQN/MPDQN
+
             match = re.match(r"(\d+) \[(.+?)\] (\S+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) ([-+]?\d*\.\d+) \[(.+?)\] (\w+)",
                              line) # for threshold
             # assert False
@@ -55,10 +53,6 @@ def parse(p):
                 line_data = [int(match.group(1)), json.loads("[" + match.group(2) + "]"), int(match.group(3)),
                              float(match.group(4)), float(match.group(5)), float(match.group(6)),
                              json.loads("[" + match.group(7) + "]"), match.group(8) == "True"]  # for DQN/Qlearning
-
-                # line_data = [int(match.group(1)), json.loads("[" + match.group(2) + "]"), int(match.group(3)),
-                #              float(match.group(4)), float(match.group(5)), float(match.group(6)), float(match.group(7)),
-                #              json.loads("[" + match.group(8) + "]"), match.group(9) == "True"]  # for PDQN/MPDQN
 
                 parsed_line.append(line_data)
                 # 9 8
@@ -224,7 +218,7 @@ def parse_episods_data(episods_data, service_name):
             response_times.append(parsed_line[1][3])
             reward.append(parsed_line[3])  # cost = -reward
             tmp_step += 1
-            if tmp_step == 60:
+            if tmp_step == step_per_episodes:
                 step.append(tmp_step)
                 replicas.append(parsed_line[6][0])
                 cpu_utilization.append(parsed_line[6][1] * 100)

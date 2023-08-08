@@ -56,13 +56,14 @@ event_monitor = threading.Event()
 w_pref = 0.5  # 0.8  # 0.5
 w_res = 0.5   # 0.2  # 0.5
 #  -------------------------------
+# Tmax setting : Need modifying for different machine
 Tmax_mn1 = 20
 Tmax_mn2 = 5
 # ------------
-timeout_setting = 0.1
-T_upper = timeout_setting*1000  #  0.1s to 100 ms
+timeout_setting = 0.05          #  0.1 / 0.05  # choose 0.05 finally
+T_upper = timeout_setting*1000  #  0.05s to 50 ms
 # ------------
-error_rate = 0.2  # 0.2
+error_rate = 0.2  # 0.2 # defective product probability
 
 ## Learning parameter
 # S ={k, u , c, r}
@@ -76,7 +77,7 @@ if_test = True
 if if_test:
     total_episodes = 1  # Testing_episodes
 
-learning_rate = 0.01          # Learning rate
+learning_rate = 0.01        # Learning rate
 # Exploration parameters
 gamma = 0.9                 # Discounting rate
 max_epsilon = 1
@@ -135,7 +136,7 @@ sensors = ["RFID_Container_for_stage0", "RFID_Container_for_stage1", "Liquid_Lev
          "Color_Container", "RFID_Container_for_stage3", "Contrast_Data_Container", "RFID_Container_for_stage4"]
 
 if use_tm:
-    f = open(tm_path)state
+    f = open(tm_path)
 
     for line in f:
         if len(request_num) < request_n:
@@ -291,11 +292,7 @@ class Env:
 
         event.set()
 
-        event_monitor.wait()
-        # time.sleep(monitor_period-5)
-        # while True:
-        #     if ((timestamp+6)%monitor_period == 0):
-        #         break
+        event_monitor.wait()  # wait thread(send request) notify
 
         response_time_list = []
 

@@ -54,13 +54,14 @@ step_period = 4
 w_pref = 0.5  # 0.8  # 0.5
 w_res = 0.5   # 0.2  # 0.5
 #  -------------------------------
+# Tmax setting : Need modifying for different machine
 Tmax_mn1 = 20
 Tmax_mn2 = 10
 # ------------
-timeout_setting = 0.05
-T_upper = timeout_setting*1000  #  0.1s to 100 ms
+timeout_setting = 0.05          #  0.1 / 0.05  # choose 0.05 finally
+T_upper = timeout_setting*1000  #  0.05 to 50 ms
 # ------------
-error_rate = 0.2  # 0.2
+error_rate = 0.2  # 0.2 # defective product probability
 # ------------
 ## Learning parameter
 # S ={k, u , c, r} {k, u , c}

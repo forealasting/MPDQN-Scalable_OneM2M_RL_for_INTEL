@@ -1,6 +1,6 @@
 import re
 import matplotlib.pyplot as plt
-tmp_dir = "mpdqn_result/result2/"
+tmp_dir = "mpdqn_result/result8/"
 
 
 path1 = tmp_dir +"app_mn1_actor_loss.txt"

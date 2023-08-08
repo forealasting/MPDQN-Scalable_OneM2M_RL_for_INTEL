@@ -22,17 +22,17 @@ ip1 = "192.168.99.105"  # app_mn2
 
 
 # request rate r
-data_rate = 120      # if not use_tm
-use_tm = 1           # if use_tm
+data_rate = 160     # if not use_tm
+use_tm = 0           # if use_tm
 tm_path = 'request/request25.txt'  # traffic path
-result_dir = "./mpdqn_result/result6/"
+result_dir = "./mpdqn_result/result_load_160/result6/"
 
 ## initial
 request_num = []
 # timestamp    :  0, 1, 2, , ..., 61, ..., 3601
 # learning step:   0,  ..., 1,     , 120
 if_test = True
-total_episodes = 8   # Training_episodes
+total_episodes = 12   # Training_episodes
 if if_test:
     total_episodes = 1  # Testing_episodes
 
@@ -40,17 +40,17 @@ monitor_period = 30     # 60
 simulation_time = 3600  #
 request_n = simulation_time + monitor_period  # for last step
 # const
-ini_replica1, ini_cpus1, ini_replica2, ini_cpus2 = 1, 1, 1, 1
+ini_replica1, ini_cpus1, ini_replica2, ini_cpus2 = 1, 0.8, 1, 0.8
 
-## manual action for evaluation
+## manual action for evaluation or Debug
 ## if training : Need modify manual_action to 0
-manual_action = 0
+manual_action = 1
 
 #----------
 manual_action_replica1 = 1  # replica  idx
-manual_action_cpus1 = 1
-manual_action_replica2 = 1  # replica  idx
-manual_action_cpus2 = 1
+manual_action_cpus1 = 0.8
+manual_action_replica2 = 1 # replica  idx
+manual_action_cpus2 = 0.8
 #----------
 
 ## global variable
@@ -63,21 +63,21 @@ event_mn1 = threading.Event()
 event_mn2 = threading.Event()
 event_timestamp_Ccontrol = threading.Event()
 event_monitor = threading.Event()
-step_period = 4
+step_period = 1
 
 # Parameter
 # cost weight -------------------
-w_pref = 0.5  # 0.8  # 0.5
-w_res = 0.5   # 0.2  # 0.5
+w_pref = 0.5  # 0.7  # 0.5
+w_res = 0.5   # 0.3  # 0.5
 #  -------------------------------
 # Tmax setting : Need modifying for different machine
 Tmax_mn1 = 20
 Tmax_mn2 = 5
 # ------------
-timeout_setting = 0.05          #  0.1 / 0.05
-T_upper = timeout_setting*1000  #  0.1s to 100 ms
+timeout_setting = 0.05          #  0.1 / 0.05  # choose 0.05 finally
+T_upper = timeout_setting*1000  #  0.1s to 50 ms
 # ------------
-error_rate = 0.2  # 0.2
+error_rate = 0.2  # 0.2 # defective product probability
 ## Learning parameter
 # S ={k, u , c, r} {k, u , c}
 # k (replica): 1 ~ 3                          actual value : same
@@ -89,7 +89,7 @@ multipass = True  # False : PDQN  / Ture: MPDQN
 
 # totoal step = episode per step * episode; ex : 60 * 16 = 960
 # Exploration parameters
-epsilon_steps = 210  # 30 * 8
+epsilon_steps = 330  # step per episodes * (episodes-1)
 epsilon_initial = 1   #
 epsilon_final = 0.01  # 0.01
 
@@ -110,7 +110,6 @@ seed = 7
 
 clip_grad = 0 # no use now
 action_input_layer = 0  # no use now
-# cres_norml = False
 
 # check result directory
 if os.path.exists(result_dir):
@@ -208,7 +207,7 @@ class Env:
 
         path1 = result_dir + self.service_name + "_response.txt"
         f1 = open(path1, 'a')
-        RFID = random.randint(1000000, 30000000)
+        RFID = random.randint(1000000, 1000000000000)
         headers = {"X-M2M-Origin": "admin:admin", "Content-Type": "application/json;ty=4"}
         data = {
             "m2m:cin": {
@@ -281,25 +280,29 @@ class Env:
 
     def step(self, action, event, done):
         global timestamp, send_finish, change
+        if action != '0':
+            action_replica = action[0]
+            action_cpus = action[1][action_replica][0]
+            self.replica = action_replica + 1  # 0 1 2 (index)-> 1 2 3 (replica)
+            self.cpus = round(action_cpus, 2)
 
         # manual_action
         if self.service_name == 'app_mn1' and manual_action:
             action_replica = manual_action_replica1-1  # replica  idx
             action_cpus = manual_action_cpus1
+            self.replica = action_replica + 1  # 0 1 2 (index)-> 1 2 3 (replica)
+            self.cpus = round(action_cpus, 2)
         if self.service_name == 'app_mn2' and manual_action:
             action_replica = manual_action_replica2-1  # replica  idx
             action_cpus = manual_action_cpus2
-        if action != '0':
-            action_replica = action[0]
-            action_cpus = action[1][action_replica][0]
             self.replica = action_replica + 1  # 0 1 2 (index)-> 1 2 3 (replica)
             self.cpus = round(action_cpus, 2)
         # print(self.replica, self.cpus)
         change = 1
 
         # restart
-        cmd = "sudo docker-machine ssh default docker service update --replicas 0 " + self.service_name
-        returned_text = subprocess.check_output(cmd, shell=True)
+        # cmd = "sudo docker-machine ssh default docker service update --replicas 0 " + self.service_name
+        # returned_text = subprocess.check_output(cmd, shell=True)
         # do agent action
         cmd1 = "sudo docker-machine ssh default docker service scale " + self.service_name + "=" + str(self.replica)
         cmd2 = "sudo docker-machine ssh default docker service update --limit-cpu " + str(self.cpus) + " " + self.service_name
@@ -309,11 +312,8 @@ class Env:
         time.sleep(30)  # wait service start
 
         event.set()
-        event_monitor.wait()
-        # time.sleep(monitor_period-6)  # wait for monitor ture value
-        # while True:
-        #     if ((timestamp+6)%monitor_period == 0):
-        #         break
+
+        event_monitor.wait()  # wait thread(send request) notify
 
         response_time_list = []
         # self.cpu_utilization = self.get_cpu_utilization()
@@ -343,6 +343,7 @@ class Env:
             Rt = min(Rt, T_upper)
             self.step_cpu_utilization = []
             self.step_rt = []
+        # Different cost setting
         # Cost 1
         # B = 10
         # if Rt > t_max:
@@ -401,6 +402,7 @@ class Env:
         reward = -(reward_perf + reward_res)
         return next_state, reward, reward_perf, reward_res
 
+# Get service cpu utilization & store (Use in class env.get_cpu_utilization_from_data)
 def store_cpu(worker_name):
     global timestamp, cpus, change, reset_complete
 
@@ -429,8 +431,6 @@ def store_cpu(worker_name):
                     f.write(data)
                     f.close()
 
-
-# reset Environment
 
 def store_reward(service_name, reward):
     # Write the string to a text file
@@ -714,8 +714,6 @@ def mpdqn(total_episodes, batch_size, gamma, initial_memory_threshold,
                     state = next_state
 
                 tmp_step += 1
-
-
                 if done:
                     break
     if not if_test:

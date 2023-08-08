@@ -67,7 +67,7 @@ for p in path_list:
     ### plot delay
     fig_add(x, y)
     fig_add1(x_, y_)
-    # print(y_)
+    print(y_)
 
 
 

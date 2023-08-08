@@ -299,7 +299,7 @@ class QLearningTable:
         self.max_epsilon = max_epsilon
         self.min_epsilon = min_epsilon
         self.epsilon_decay = epsilon_decay
-        self.q_table = np.full((10, 11, 10, 5), -np.iinfo(np.int32).max)  # -2147483647
+        self.q_table = np.full((10, 11, 10, 5), 0)  # -np.iinfo(np.int32).max = -2147483647
 
     def choose_action(self, state):
         available_actions = self.get_available_actions(state)
