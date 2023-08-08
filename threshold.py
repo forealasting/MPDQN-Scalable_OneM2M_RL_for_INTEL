@@ -51,7 +51,7 @@ step_period = 4
 
 # Parameter
 # cost weight -------------------
-w_pref = 0.5  # 0.8  # 0.5
+w_perf = 0.5  # 0.8  # 0.5
 w_res = 0.5   # 0.2  # 0.5
 #  -------------------------------
 # Tmax setting : Need modifying for different machine
@@ -92,7 +92,7 @@ settings = {
     'Tmax_mn1': Tmax_mn1,
     'Tmax_mn2': Tmax_mn2,
     'simulation_time': simulation_time,
-    'w_pref': w_pref,
+    'w_perf': w_perf,
     'w_res': w_res,
     'step_period' : step_period,
 }
@@ -335,7 +335,7 @@ class Env:
         # normalize
         # c_perf = 0 + ((c_perf - math.exp(-Tupper/t_max)) / (1 - math.exp(-Tupper/t_max))) * (1 - 0)  # min max normalize
         # c_res = 0 + ((c_res - (1 / 6)) / (1 - (1 / 6))) * (1 - 0)  # min max normalize
-        reward_perf = w_pref * c_perf
+        reward_perf = w_perf * c_perf
         reward_res = w_res * c_res
         reward = -(reward_perf + reward_res)
         return next_state, reward, reward_perf, reward_res

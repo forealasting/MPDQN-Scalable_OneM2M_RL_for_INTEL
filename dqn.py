@@ -53,7 +53,7 @@ event_monitor = threading.Event()
 
 # Parameter
 # cost weight -------------------
-w_pref = 0.5  # 0.8  # 0.5
+w_perf = 0.5  # 0.8  # 0.5
 w_res = 0.5   # 0.2  # 0.5
 #  -------------------------------
 # Tmax setting : Need modifying for different machine
@@ -122,7 +122,7 @@ settings = {
     'batch_size': batch_size,
     'loss_function': 'mse loss',
     'target_update': target_update,
-    'w_pref': w_pref,
+    'w_perf': w_perf,
     'w_res': w_res
 }
 # Write settings to file
@@ -368,7 +368,7 @@ class Env:
         # normalize
         # c_perf = 0 + ((c_perf - math.exp(-Tupper/t_max)) / (1 - math.exp(-Tupper/t_max))) * (1 - 0)  # min max normalize
         # c_res = 0 + ((c_res - (1 / 6)) / (1 - (1 / 6))) * (1 - 0)  # min max normalize
-        reward_perf = w_pref * c_perf
+        reward_perf = w_perf * c_perf
         reward_res = w_res * c_res
         reward = -(reward_perf + reward_res)
         return next_state, reward, reward_perf, reward_res

@@ -279,11 +279,11 @@ class Env:
         # state.append(req)
 
         # cost function
-        w_pref = 0.5
+        w_perf = 0.5
         w_res = 0.5
         c_perf = 0 + ((c_perf - math.exp(-50 / t_max)) / (1 - math.exp(-50 / t_max))) * (1 - 0)
         c_res = 0 + ((c_res - (1 / 6)) / (1 - (1 / 6))) * (1 - 0)
-        reward_perf = w_pref * c_perf
+        reward_perf = w_perf * c_perf
         reward_res = w_res * c_res
         reward = -(reward_perf + reward_res)
         return next_state, reward, reward_perf, reward_res
