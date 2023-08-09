@@ -20,7 +20,7 @@ sensors = ["RFID_Container_for_stage0", "RFID_Container_for_stage1", "Liquid_Lev
 
 response_times = []
 
-def reset(r1, c1, r2, c2):
+def reset(r1, r2):
     print("reset envronment...")
     cmd_list = [
         "sudo docker-machine ssh default docker service update --replicas 0 app_mnae1",
@@ -38,7 +38,7 @@ def reset(r1, c1, r2, c2):
         result = execute_command(cmd)
         print(result)
 
-reset(1,1,1,1)
+reset(1,1)
 
 class OneM2MUser(HttpUser):
 
@@ -69,11 +69,11 @@ class OneM2MUser(HttpUser):
         else:
             print("POST failed")
 
-        @task
-        def index(self):
-            self.client.get("/")
-            self.client.get("/static/assets.js")
+    @task
+    def index(self):
+        self.client.get("/")
+        self.client.get("/static/assets.js")
 
-        @task
-        def about(self):
-            self.client.get("/about/")
+    @task
+    def about(self):
+        self.client.get("/about/")
