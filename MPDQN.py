@@ -89,7 +89,7 @@ multipass = True  # False : PDQN  / Ture: MPDQN
 
 # totoal step = episode per step * episode; ex : 60 * 16 = 960
 # Exploration parameters
-epsilon_steps = 330  # step per episodes * (episodes-1)
+epsilon_steps = 840  # step per episodes * (episodes-1)
 epsilon_initial = 1   #
 epsilon_final = 0.01  # 0.01
 
