@@ -3,7 +3,9 @@ import re
 import json
 import warnings
 import os
+import statistics
 from matplotlib import MatplotlibDeprecationWarning
+import statistics
 
 warnings.filterwarnings('ignore', category=MatplotlibDeprecationWarning)
 # delay modify = average every x delay (x = 10, 50, 100)
@@ -122,6 +124,8 @@ def fig_add_response_times(x, y, y_, service_name):
     else:
         plt.plot(x, y, color="purple")  # color=color # label=label
     avg = sum(y) / len(y)
+    median = statistics.median(y)
+    print("median response time", median)
 
     plt.title(service_name + " Avg : " + str(avg))
     plt.xlabel("step")
@@ -134,7 +138,9 @@ def fig_add_response_times(x, y, y_, service_name):
     result2 = filter(lambda v: v > Rmax, y)
     R = len(list(result2)) / len(y)
     print("Rmax violation: ", R)
-
+    with open(tmp_dir + 'Response_time_data.txt', 'a') as file:
+        file.write(service_name + "_median: " + str(median) + "\n")
+        file.write(service_name + "Tmax_violation: " + str(R) + "\n")
     #plt.grid(True)
     plt.axhline(y=Rmax, color='r', linestyle='--')
     plt.xlim(0, total_episodes*step_per_episodes)
@@ -238,7 +244,7 @@ def parse_episods_data(episods_data, service_name):
     fig_add_response_times(step, response_times, response_times_, service_name)
     fig_add_Cpu_utilization(step, cpu_utilization, cpu_utilization_, service_name)
     fig_add_Resource_use(step, resource_use, resource_use_, service_name, tmp_dir)
-    # fig_add_reward(step, reward, reward_, service_name)
+    fig_add_reward(step, reward, reward_, service_name)
 
 
 tmp_count = 0

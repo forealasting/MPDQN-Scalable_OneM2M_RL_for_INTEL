@@ -7,6 +7,7 @@ import os
 from matplotlib import MatplotlibDeprecationWarning
 import matplotlib.lines as mlines
 import matplotlib
+import statistics
 warnings.filterwarnings('ignore', category=MatplotlibDeprecationWarning)
 # delay modify = average every x delay (x = 10, 50, 100)
 # request rate r
@@ -185,9 +186,6 @@ def fig_add_response_times(x, y, y_, service_name):
     avg = sum(y) / len(y)
     median = statistics.median(y)
     print("median response time", median)
-    with open(tmp_dir + 'median.txt', 'a') as file:
-        file.write(service_name + "_median: " + str(median) + "/n")
-
 
     plt.title(service_name + " Avg : " + str(avg))
     plt.xlabel("step", )
@@ -200,7 +198,9 @@ def fig_add_response_times(x, y, y_, service_name):
     result2 = filter(lambda v: v > Rmax, y)
     R = len(list(result2)) / len(y)
     print("Rmax violation: ", R)
-
+    with open(tmp_dir + 'Response_time_data.txt', 'a') as file:
+        file.write(service_name + "_median: " + str(median) + "\n")
+        file.write(service_name + "Tmax_violation: " + str(R) + "\n")
     # plt.grid(True)
     plt.axhline(y=Rmax_mn1, color='r', linestyle='--')
     plt.xlim(0, total_episodes*step_per_episodes)
