@@ -7,6 +7,7 @@ import os
 from matplotlib import MatplotlibDeprecationWarning
 import matplotlib.lines as mlines
 import matplotlib
+
 warnings.filterwarnings('ignore', category=MatplotlibDeprecationWarning)
 # delay modify = average every x delay (x = 10, 50, 100)
 # request rate r
@@ -74,6 +75,70 @@ def parse(p):
 
 matplotlib.rcParams.update({'font.size': 15})
 # Plot --------------------------------------
+def fig_combined_all(x, y2, y1, y3, y4, service_name):
+    # Create a figure with two subplots
+    fig, (ax4, ax3, ax2) = plt.subplots(3, 1, figsize=(10, 12), sharex=True)
+
+    ax1 = ax2.twinx()  # 在同一個 Figure 上建立第一個軸 ax1 (共享 x 軸)
+
+    line_replicas = ax2.plot(x, y1, color="green", linestyle="-.")[0]  # 在第二個軸上繪製綠色的 Replicas 圖形
+    line_cpus = ax1.plot(x, y2, color="blue", linestyle="--")[0]  # 在第一個軸上繪製藍色的 Cpus 圖形
+
+    ax2.set_xlabel("step", )  # 設定 x 軸標籤
+    ax2.set_ylabel("Replicas", labelpad=30)  # 設定第二個軸的 y 軸標籤
+    ax1.set_ylabel("Cpus",)  # 設定第一個軸的 y 軸標籤
+
+    ax2.set_xlim(0, total_episodes * step_per_episodes)  # 設定 x 軸範圍
+    ax2.set_ylim(0, 3.5)  # 設定第二個軸的 y 軸範圍
+    ax1.set_ylim(0, 1.1)  # 設定第一個軸的 y 軸範圍
+    ax1.set_yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    ax2.set_yticks([0, 1, 2, 3])
+
+
+    line_replicas_color = line_replicas.get_color()
+    line_replicas_style = line_replicas.get_linestyle()
+    line_cpus_color = line_cpus.get_color()
+    line_cpus_style = line_cpus.get_linestyle()
+
+    # 建立線條圖示
+    replicas_legend = mlines.Line2D([], [], color=line_replicas_color, linestyle=line_replicas_style, label='Replicas')
+    cpus_legend = mlines.Line2D([], [], color=line_cpus_color, linestyle=line_cpus_style, label='Cpus')
+    # ax2.set_title(service_name, pad=20)
+    # Add legends to the first subplot (ax1)
+    ax2.legend(handles=[replicas_legend, cpus_legend], loc='upper center', fontsize=12, ncol=2, bbox_to_anchor=(0.5, 1.2))
+
+
+    # ------------------------------------------------
+    # Plot Cpu utilization on the second subplot (ax3)
+    ax3.plot(x, y3, color='royalblue')
+    ax3.fill_between(x, 0, y3, color='royalblue')
+    ax3.set_xlabel('Step')
+    ax3.set_ylabel('Cpu utilization(%)', labelpad=10)
+    ax3.set_ylim(0, 110)
+    ax3.set_yticks([0, 25, 50, 75, 100])
+
+    avg = statistics.mean(y3)
+    ax3.set_title(service_name + " Avg : " + str(avg), pad=20)
+    # -----------------------------------------------
+    # Plot additional data on the fourth subplot (ax4)
+    ax4.plot(x, y4, color='purple')
+    ax4.fill_between(x, 0, y4, color="purple")
+    ax4.set_ylabel("Response time(ms)", labelpad=20)
+    ax4.set_ylim(0, 50)  # Set y-axis range for the fourth subplot
+    ax4.set_yticks([0, 10, 20, 30, 40, 50])
+    ax4.set_xlabel('Step')
+
+    avg = statistics.mean(y4)
+    ax4.set_title(service_name + " Avg : " + str(avg), pad=20)
+    if service_name == "First_level_mn1":
+        Rmax = Rmax_mn1
+    else:
+        Rmax = Rmax_mn2
+    ax4.axhline(y=Rmax, color='r', linestyle='--')
+
+    plt.tight_layout()
+    plt.savefig(tmp_dir + service_name + "_Combined_all.png", dpi=300)
+    plt.show()
 
 def fig_add_Cpus_Replicas(x, y2, y1, service_name):
     fig, ax2 = plt.subplots(figsize=(10, 4))  # 建立一個 Figure 和第二個軸 ax2
@@ -312,6 +377,7 @@ def parse_episods_data(episods_data, service_name):
     fig_add_Cpu_utilization(step, cpu_utilization, cpu_utilization_, service_name)
     fig_add_Resource_use(step, resource_use, resource_use_, service_name, tmp_dir)
     fig_add_reward(step, reward, reward_, service_name)
+    fig_combined_all(step, cpus, replicas, cpu_utilization, response_times, service_name)
 
 
 tmp_count = 0
