@@ -39,7 +39,7 @@ python MPDQN.py
 
 ### IP Configuration
 
-Modify the following IP addresses in the Python code if your network configuration changes:
+Modify the following IP addresses if your network configuration changes:
 
 ```python
 ip = "192.168.99.104"  # Update with the new IP address
@@ -48,7 +48,7 @@ ip1 = "192.168.99.105"  # Update with the new IP address
 
 ### Traffic and Request Configuration
 
-Adjust the data rate and traffic parameters in the Python code:
+Adjust the data rate and traffic parameters and result directory:
 
 ```python
 data_rate = 160     # Adjust the data rate as needed
@@ -59,7 +59,7 @@ result_dir = "./mpdqn_result/result_load_160/result6/"
 
 ### Simulation Configuration
 
-Configure the simulation parameters in the Python code:
+Configure the simulation parameters:
 
 ```python
 total_episodes = 12   # Total training episodes, adjust as needed
@@ -71,7 +71,7 @@ simulation_time = 3600  # Adjust the simulation time as needed
 
 ### Manual Action Configuration
 
-If you want to manually set actions for evaluation or debugging, adjust the following settings in the Python code:
+If you want to manually set actions for evaluation or debugging, adjust the following settings:
 
 ```python
 manual_action = 0  # Set to 0 if not using manual actions
@@ -115,7 +115,7 @@ clip_grad = 0
 action_input_layer = 0
 ```
 
-save the settings in the `settings` dictionary in the Python code:
+save the settings in the `settings` dictionary:
 
 ```python
 # Define settings dictionary
@@ -124,10 +124,10 @@ settings = {
 }
 ```
 
-### Result Directory
+### Create Result Directory
 
 Check and create the result directory :
-```python
+```python 
 if os.path.exists(result_dir):
     print("Deleting existing result directory...")
     raise SystemExit  # end process
@@ -135,6 +135,29 @@ if os.path.exists(result_dir):
 # Build result directory
 os.mkdir(result_dir)
 ```
+
+## Plot Result
+* **Plot Result using the following Python** : 
+* **origin version** : matplot_trajectory_DQN.py, matplot_trajectory_MPDQN.py, matplot_trajectory_threshold.py
+* **paper version matplot_paper directory**: matplot_trajectory_DQN.py, matplot_trajectory_MPDQN.py, matplot_trajectory_threshold.py
+
+**1. Set the training total episodes and step_per_episodes and Set if_evaluation = 0 for plot training**
+**2. Set if_evaluation = 1 for plot test result**
+**3. Modify result directory**
+```python
+total_episodes = 8
+step_per_episodes = 30
+
+# evaluation
+if_evaluation = 1
+if if_evaluation:
+    total_episodes = 1
+# Modify result directory
+tmp_dir = "mpdqn_result/result8/evaluate2/"
+path1 = tmp_dir + "/app_mn1_trajectory.txt"
+path2 = tmp_dir + "/app_mn2_trajectory.txt"
+```
+
 
 ### Reference Github
 Link : https://github.com/cycraig/MP-DQN

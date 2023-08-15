@@ -10,12 +10,10 @@ import matplotlib
 import statistics
 import matplotlib.lines as mlines
 warnings.filterwarnings('ignore', category=MatplotlibDeprecationWarning)
-# delay modify = average every x delay (x = 10, 50, 100)
-# request rate r
-# r = '100'
 
-total_episodes = 16
-step_per_episodes = 60
+
+total_episodes = 8
+step_per_episodes = 30
 
 # evaluation
 if_evaluation = 1

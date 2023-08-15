@@ -7,14 +7,10 @@ import os
 from matplotlib import MatplotlibDeprecationWarning
 import matplotlib.lines as mlines
 import matplotlib
-
 warnings.filterwarnings('ignore', category=MatplotlibDeprecationWarning)
-# delay modify = average every x delay (x = 10, 50, 100)
-# request rate r
-# r = '100'
 
-total_episodes = 16
-step_per_episodes = 120
+total_episodes = 8
+step_per_episodes = 30
 
 # evaluation
 if_evaluation = 1
@@ -186,7 +182,9 @@ def fig_add_Cpus(x, y, service_name):
     plt.xlabel("step", )
     plt.ylabel("Cpus", )
     # plt.grid(True)
-
+    avg = sum(y) / len(y)
+    with open(tmp_dir + 'paper_data.txt', 'a') as file:
+        file.write(service_name + " Avg_Cpus: " + str(avg) + "\n")
     plt.xlim(0, total_episodes*step_per_episodes)
     plt.ylim(0, 1.1)
     plt.xticks()
@@ -203,6 +201,9 @@ def fig_add_Replicas(x, y, service_name):
     plt.xlabel("step", )
     plt.ylabel("Replicas", )
     # plt.grid(True)
+    avg = sum(y) / len(y)
+    with open(tmp_dir + 'paper_data.txt', 'a') as file:
+        file.write(service_name + " Avg_Replicas: " + str(avg) + "\n")
     plt.xlim(0, total_episodes*step_per_episodes)
     plt.ylim(0, 4)
     plt.xticks()
@@ -246,8 +247,6 @@ def fig_add_response_times(x, y, y_, service_name):
         plt.fill_between(x, 0, y, color="purple")
     avg = sum(y) / len(y)
     median = statistics.median(y)
-    with open(tmp_dir + 'median.txt', 'a') as file:
-        file.write(service_name + "_median: " + str(median) + "/n")
     print("median response time", median)
     plt.title(service_name + " Avg : " + str(avg))
     plt.xlabel("step", )
@@ -260,9 +259,9 @@ def fig_add_response_times(x, y, y_, service_name):
     result2 = filter(lambda v: v > Rmax, y)
     R = len(list(result2)) / len(y)
     print("Rmax violation: ", R)
-    with open(tmp_dir + 'Response_time_data.txt', 'a') as file:
-        file.write(service_name + "_median: " + str(median) + "\n")
-        file.write(service_name + "Tmax_violation: " + str(R) + "\n")
+    with open(tmp_dir + 'paper_data.txt', 'a') as file:
+        file.write(service_name + " Median: " + str(median) + "\n")
+        file.write(service_name + " Tmax_violation: " + str(R) + "\n")
 
     # plt.grid(True)
     plt.axhline(y=Rmax_mn1, color='r', linestyle='--')

@@ -8,11 +8,9 @@ from matplotlib import MatplotlibDeprecationWarning
 import statistics
 import matplotlib.lines as mlines
 warnings.filterwarnings('ignore', category=MatplotlibDeprecationWarning)
-# delay modify = average every x delay (x = 10, 50, 100)
-# request rate r
-# r = '100'
-simulation_time = 3600  # 3600 s
-total_episodes = 16
+
+
+total_episodes = 8
 step_per_episodes = 30
 
 # evaluation
@@ -31,11 +29,6 @@ service = ["First_level_mn1", "Second_level_mn2", "app_mnae1", "app_mnae2"]
 Rmax_mn1 = 20
 Rmax_mn2 = 5
 
-# path_evaluate = tmp_dir+"/evaluate/"
-# if not os.path.exists(path_evaluate):
-#     os.makedirs(path_evaluate)
-# service = ["Second_level_mn1", "First_level_mn1", "app_mnae1", "app_mnae2"]
-# path_list = [path1, path2]
 path_list = [path1, path2]
 def parse(p):
     with open(p, "r") as f:
@@ -176,7 +169,9 @@ def fig_add_Cpus(x, y, service_name):
     plt.xlabel("step")
     plt.ylabel("Cpus")
     #plt.grid(True)
-
+    avg = sum(y) / len(y)
+    with open(tmp_dir + 'paper_data.txt', 'a') as file:
+        file.write(service_name + " Avg_Cpus: " + str(avg) + "\n")
     plt.xlim(0, total_episodes*step_per_episodes)
     plt.ylim(0, 1.1)
     plt.savefig(tmp_dir + service_name + "_Cpus.png", dpi=300)
@@ -191,7 +186,9 @@ def fig_add_Replicas(x, y, service_name):
     plt.xlabel("step")
     plt.ylabel("Replicas")
     #plt.grid(True)
-
+    avg = sum(y) / len(y)
+    with open(tmp_dir + 'paper_data.txt', 'a') as file:
+        file.write(service_name + " Avg_Replicas: " + str(avg) + "\n")
     plt.xlim(0, total_episodes*step_per_episodes)
     plt.ylim(0, 4)
     plt.savefig(tmp_dir + service_name + "_Replicas.png", dpi=300)
@@ -238,9 +235,9 @@ def fig_add_response_times(x, y, y_, service_name):
     result2 = filter(lambda v: v > Rmax, y)
     R = len(list(result2)) / len(y)
     print("Rmax violation: ", R)
-    with open(tmp_dir + 'Response_time_data.txt', 'a') as file:
-        file.write(service_name + "_median: " + str(median) + "\n")
-        file.write(service_name + "Tmax_violation: " + str(R) + "\n")
+    with open(tmp_dir + 'paper_data.txt', 'a') as file:
+        file.write(service_name + " Median: " + str(median) + "\n")
+        file.write(service_name + " Tmax_violation: " + str(R) + "\n")
     #plt.grid(True)
     plt.axhline(y=Rmax, color='r', linestyle='--')
     plt.xlim(0, total_episodes*step_per_episodes)
