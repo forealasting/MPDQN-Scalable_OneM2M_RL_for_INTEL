@@ -141,8 +141,8 @@ os.mkdir(result_dir)
 * **origin version** : matplot_trajectory_DQN.py, matplot_trajectory_MPDQN.py, matplot_trajectory_threshold.py
 * **paper version matplot_paper directory**: matplot_trajectory_DQN.py, matplot_trajectory_MPDQN.py, matplot_trajectory_threshold.py
 
-**1. Set the training total episodes and step_per_episodes and Set if_evaluation = 0 for plot training**
-**2. Set if_evaluation = 1 for plot test result**
+**1. Set the training total episodes and step_per_episodes and Set if_evaluation = 0 for plot training**  
+**2. Set if_evaluation = 1 for plot test result**  
 **3. Modify result directory**
 ```python
 total_episodes = 8
