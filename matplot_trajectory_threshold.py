@@ -21,7 +21,7 @@ if if_evaluation:
 # tmp_str = "result2/result_cpu" # result_1016/tm1
 # tmp_dir = "dqn_result/result1/evaluate/"
 # tmp_dir = "dqn_result/result2/"
-tmp_dir = "threshold_result/result10/"
+tmp_dir = "threshold_result/result1/"
 path1 = tmp_dir + "/app_mn1_trajectory.txt"
 path2 = tmp_dir + "/app_mn2_trajectory.txt"
 

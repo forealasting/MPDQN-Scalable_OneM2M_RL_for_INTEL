@@ -28,7 +28,7 @@ data_rate = 20      # if not use_tm
 
 use_tm = 0          # if use_tm
 tm_path = 'request/request20.txt'
-result_dir = "./dqn_result/result1/evaluate4/"
+result_dir = "./dqn_result/result1/"
 
 ## initial
 request_num = []
@@ -73,7 +73,7 @@ error_rate = 0.2  # 0.2 # defective product probability
 # action_space = ['-r', -1, 0, 1, 'r']
 total_episodes = 16       # Total episodes
 
-if_test = True
+if_test = False
 if if_test:
     total_episodes = 1  # Testing_episodes
 

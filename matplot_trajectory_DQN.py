@@ -12,11 +12,11 @@ total_episodes = 8
 step_per_episodes = 30
 
 # evaluation
-if_evaluation = 1
+if_evaluation = 0
 if if_evaluation:
     total_episodes = 1
 
-tmp_dir = "dqn_result/result2/evaluate2/"
+tmp_dir = "dqn_result/result1/"
 path1 = tmp_dir + "/app_mn1_trajectory.txt"
 path2 = tmp_dir + "/app_mn2_trajectory.txt"
 

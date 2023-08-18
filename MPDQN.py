@@ -23,15 +23,15 @@ ip1 = "192.168.99.105"  # app_mn2
 
 # request rate r
 data_rate = 160     # if not use_tm
-use_tm = 0           # if use_tm
+use_tm = 1           # if use_tm
 tm_path = 'request/request25.txt'  # traffic path
-result_dir = "./mpdqn_result/result_load_160/result6/"
+result_dir = "./mpdqn_result/result1/"
 
 ## initial
 request_num = []
 # timestamp    :  0, 1, 2, , ..., 61, ..., 3601
 # learning step:   0,  ..., 1,     , 120
-if_test = True
+if_test = False
 total_episodes = 12   # Training_episodes
 if if_test:
     total_episodes = 1  # Testing_episodes
