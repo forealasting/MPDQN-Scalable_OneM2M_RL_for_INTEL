@@ -8,9 +8,12 @@ from matplotlib import MatplotlibDeprecationWarning
 import matplotlib.lines as mlines
 import matplotlib
 warnings.filterwarnings('ignore', category=MatplotlibDeprecationWarning)
+# delay modify = average every x delay (x = 10, 50, 100)
+# request rate r
+# r = '100'
 
-total_episodes = 8
-step_per_episodes = 30
+total_episodes = 16
+step_per_episodes = 60
 
 # evaluation
 if_evaluation = 1
@@ -20,7 +23,7 @@ if if_evaluation:
 # tmp_str = "result2/result_cpu" # result_1016/tm1
 # tmp_dir = "dqn_result/result1/evaluate/"
 # tmp_dir = "dqn_result/result2/"
-tmp_dir = "dqn_result/result2/evaluate1/"
+tmp_dir = "/home/user/MPDQN-Scalable_OneM2M_RL/dqn_result/result1/evaluate1/"
 path1 = tmp_dir + "/app_mn1_trajectory.txt"
 path2 = tmp_dir + "/app_mn2_trajectory.txt"
 
@@ -247,6 +250,7 @@ def fig_add_response_times(x, y, y_, service_name):
         plt.fill_between(x, 0, y, color="purple")
     avg = sum(y) / len(y)
     median = statistics.median(y)
+
     print("median response time", median)
     plt.title(service_name + " Avg : " + str(avg))
     plt.xlabel("step", )
@@ -289,7 +293,8 @@ def fig_add_Resource_use(x, y, y_, service_name, dir):
     avg = sum(y) / len(y)
     # avg = round(avg, 2)
     print(service_name + " Avg_Resource_use", avg)
-
+    with open(tmp_dir + 'paper_data.txt', 'a') as file:
+        file.write(service_name + " Avg_Resource_use: " + str(avg) + "\n")
     plt.title(service_name + " Avg : " + str(avg))
     plt.xlabel("step", )
     plt.ylabel("Resource_use", )
@@ -378,7 +383,6 @@ def parse_episods_data(episods_data, service_name):
     fig_add_reward(step, reward, reward_, service_name)
     fig_combined_all(step, cpus, replicas, cpu_utilization, response_times, service_name)
 
-
 tmp_count = 0
 for p in path_list:
     # print(p)
@@ -396,7 +400,6 @@ for p in path_list:
     # fig_add(x, y2, service[tmp_count])
     # fig_add(x, y3, service[tmp_count])
     tmp_count += 1
-
 
 
 

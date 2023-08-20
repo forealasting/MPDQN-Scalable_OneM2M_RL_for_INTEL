@@ -8,12 +8,13 @@ from matplotlib import MatplotlibDeprecationWarning
 import matplotlib.lines as mlines
 import matplotlib
 import statistics
-import matplotlib.lines as mlines
 warnings.filterwarnings('ignore', category=MatplotlibDeprecationWarning)
+# delay modify = average every x delay (x = 10, 50, 100)
+# request rate r
+# r = '100'
 
-
-total_episodes = 8
-step_per_episodes = 30
+total_episodes = 16
+step_per_episodes = 60
 
 # evaluation
 if_evaluation = 1
@@ -22,13 +23,13 @@ if if_evaluation:
 # tmp_str = "result2/result_cpu" # result_1016/tm1
 #tmp_dir = "pdqn_result/result2"
 # tmp_dir = "offline/database4"
-tmp_dir = "mpdqn_result/result_static/evaluate1/"
+tmp_dir = "/home/user/MPDQN-Scalable_OneM2M_RL/mpdqn_result/result3/evaluate2/"
 path1 = tmp_dir + "/app_mn1_trajectory.txt"
 path2 = tmp_dir + "/app_mn2_trajectory.txt"
 
 service = ["First_level_MNCSE", "Second_level_MNCSE", "app_mnae1", "app_mnae2"]
 Rmax_mn1 = 20
-Rmax_mn2 = 10
+Rmax_mn2 = 20
 # path_evaluate = tmp_dir+"/evaluate/"
 # if not os.path.exists(path_evaluate):
 #     os.makedirs(path_evaluate)
@@ -142,7 +143,6 @@ def fig_combined_all(x, y2, y1, y3, y4, service_name):
     plt.tight_layout()
     plt.savefig(tmp_dir + service_name + "_Combined_all.png", dpi=300)
     plt.show()
-
 def fig_add_Cpus_Replicas(x, y2, y1, service_name):
     fig, ax2 = plt.subplots(figsize=(10, 4))  # 建立一個 Figure 和第二個軸 ax2
     ax1 = ax2.twinx()  # 在同一個 Figure 上建立第一個軸 ax1 (共享 x 軸)
@@ -189,7 +189,9 @@ def fig_add_Cpus(x, y, service_name):
     plt.xlabel("step", )
     plt.ylabel("Cpus", )
     # plt.grid(True)
-
+    avg = sum(y) / len(y)
+    with open(tmp_dir + 'paper_data.txt', 'a') as file:
+        file.write(service_name + " Avg_Cpus: " + str(avg) + "\n")
     plt.xlim(0, total_episodes*step_per_episodes)
     plt.ylim(0, 1.1)
     plt.xticks()
@@ -205,7 +207,11 @@ def fig_add_Replicas(x, y, service_name):
     plt.title(service_name)
     plt.xlabel("step", )
     plt.ylabel("Replicas", )
+
     # plt.grid(True)
+    avg = sum(y) / len(y)
+    with open(tmp_dir + 'paper_data.txt', 'a') as file:
+        file.write(service_name + " Avg_Replicas: " + str(avg) + "\n")
     plt.xlim(0, total_episodes*step_per_episodes)
     plt.ylim(0, 4)
     plt.xticks()
@@ -262,9 +268,9 @@ def fig_add_response_times(x, y, y_, service_name):
     result2 = filter(lambda v: v > Rmax, y)
     R = len(list(result2)) / len(y)
     print("Rmax violation: ", R)
-    with open(tmp_dir + 'Response_time_data.txt', 'a') as file:
-        file.write(service_name + "_median: " + str(median) + "\n")
-        file.write(service_name + "Tmax_violation: " + str(R) + "\n")
+    with open(tmp_dir + 'paper_data.txt', 'a') as file:
+        file.write(service_name + " Median: " + str(median) + "\n")
+        file.write(service_name + " Tmax_violation: " + str(R) + "\n")
     # plt.grid(True)
     plt.axhline(y=Rmax_mn1, color='r', linestyle='--')
     plt.xlim(0, total_episodes*step_per_episodes)
@@ -291,7 +297,8 @@ def fig_add_Resource_use(x, y, y_, service_name, dir):
     avg = sum(y) / len(y)
     # avg = round(avg, 2)
     print(service_name + " Avg_Resource_use", avg)
-
+    with open(tmp_dir + 'paper_data.txt', 'a') as file:
+        file.write(service_name + " Avg_Resource_use: " + str(avg) + "\n")
     plt.title(service_name + " Avg : " + str(avg))
     plt.xlabel("step", )
     plt.ylabel("Resource_use", )
@@ -384,7 +391,7 @@ def parse_episods_data(episods_data, service_name):
     fig_add_Cpu_utilization(step, cpu_utilization, cpu_utilization_, service_name)
     fig_add_Resource_use(step, resource_use, resource_use_, service_name, tmp_dir)
     fig_add_reward(step, reward, reward_, service_name)
-
+    fig_combined_all(step, cpus, replicas, cpu_utilization, response_times, service_name)
 
 tmp_count = 0
 for p in path_list:
@@ -457,7 +464,6 @@ for p in path_list:
 #         plt.tight_layout()
 #         plt.show()
 #     tmp+=1
-
 
 
 
